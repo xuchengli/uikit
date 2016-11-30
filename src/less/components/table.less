@@ -52,8 +52,6 @@
 /*
  * 1. Remove most spacing between table cells.
  * 2. Behave like a block element
- * 3. Style
- * 4. Add margin if adjacent element
  */
 
 .uk-table {
@@ -62,11 +60,9 @@
     border-spacing: 0;
     /* 2 */
     width: 100%;
-    /* 3 */
-    margin-bottom: @table-margin-vertical;
 }
 
-/* 4 */
+/* Add margin if adjacent element */
 * + .uk-table { margin-top: @table-margin-vertical; }
 
 

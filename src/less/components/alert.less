@@ -44,7 +44,6 @@
 
 .uk-alert {
     position: relative;
-    margin-bottom: @alert-margin-vertical;
     padding: @alert-padding @alert-padding-right @alert-padding @alert-padding;
     background: @alert-background;
     color: @alert-color;
@@ -53,12 +52,6 @@
 
 /* Add margin if adjacent element */
 * + .uk-alert { margin-top: @alert-margin-vertical; }
-
-/*
- * Remove margin from the last-child
- */
-
-.uk-alert > :last-child { margin-bottom: 0; }
 
 
 /* Close

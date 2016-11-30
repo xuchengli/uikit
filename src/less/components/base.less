@@ -312,7 +312,7 @@ dl,
 pre,
 address,
 fieldset,
-figure { margin: 0 0 @base-margin-vertical 0; }
+figure { margin: 0; }
 
 /* Add margin if adjacent element */
 * + p,
@@ -334,7 +334,7 @@ h3, .uk-h3,
 h4, .uk-h4,
 h5, .uk-h5,
 h6, .uk-h6 {
-    margin: 0 0 @base-margin-vertical 0;
+    margin: 0;
     font-family:  @base-heading-font-family;
     font-weight: @base-heading-font-weight;
     color: @base-heading-color;
@@ -430,7 +430,7 @@ hr, .uk-hr {
     /* 2 */
     overflow: visible;
     /* 3 */
-    margin: 0 0 @base-hr-margin-vertical 0;
+    margin: 0;
     border: 0;
     border-top: @base-hr-border-width solid @base-hr-border;
     .hook-base-hr;
@@ -451,7 +451,7 @@ address { font-style: normal; }
  ========================================================================== */
 
 blockquote {
-    margin: 0 0 @base-blockquote-margin-vertical 0;
+    margin: 0;
     font-size: @base-blockquote-font-size;
     line-height: @base-blockquote-line-height;
     font-style: @base-blockquote-font-style;
@@ -464,8 +464,6 @@ blockquote {
 /*
  * Content
  */
-
-blockquote p:last-of-type { margin-bottom: 0; }
 
 blockquote footer {
     margin-top:  @base-blockquote-footer-margin-top;

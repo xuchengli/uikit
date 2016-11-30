@@ -85,6 +85,8 @@
 @form-legend-font-size:                         @global-large-font-size;
 @form-legend-line-height:                       1.4;
 
+@form-fieldset-margin-vertical:                 @global-margin;
+
 @form-stacked-margin-bottom:                    @global-small-margin;
 
 @form-horizontal-label-width:                   200px;
@@ -530,6 +532,13 @@ select.uk-form-width-xsmall { width: (@form-width-xsmall + 25px); }
     line-height: @form-legend-line-height;
     .hook-form-legend;
 }
+
+
+/* Fieldset
+ ========================================================================== */
+
+/* Add margin if adjacent element */
+* + .uk-fieldset { margin-top: @form-fieldset-margin-vertical; }
 
 
 /* Custom controls

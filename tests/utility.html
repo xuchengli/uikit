@@ -76,7 +76,7 @@
 
             <h2>Overflow Auto</h2>
 
-            <div class="uk-overflow-auto uk-width-1-2@s">
+            <div class="uk-overflow-auto uk-width-1-2@s uk-margin">
                 <table class="uk-table uk-table-striped uk-table-small uk-text-nowrap">
                     <thead>
                         <tr>
@@ -174,14 +174,14 @@
             <div class="uk-child-width-1-3@s" uk-grid>
                 <div>
                     <p>Responsive Width (Video)</p>
-                    <video class="uk-responsive-width" width="600" height="400" controls>
+                    <video class="uk-responsive-width uk-margin" width="600" height="400" controls>
                         <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.mp4?test1" type="video/mp4">
                         <source src="http://www.quirksmode.org/html5/videos/big_buck_bunny.ogv?test1" type="video/ogg">
                     </video>
                 </div>
                 <div>
                     <p>JS Responsive Width (Iframe)</p>
-                    <iframe src="http://www.youtube.com/embed/YE7VzlLtp-4?autoplay=0&amp;controls=0&amp;showinfo=0&amp;rel=0&amp;loop=1&amp;modestbranding=1&amp;wmode=transparent" width="560" height="315" frameborder="0" allowfullscreen uk-responsive></iframe>
+                    <iframe class="uk-margin" src="http://www.youtube.com/embed/YE7VzlLtp-4?autoplay=0&amp;controls=0&amp;showinfo=0&amp;rel=0&amp;loop=1&amp;modestbranding=1&amp;wmode=transparent" width="560" height="315" frameborder="0" allowfullscreen uk-responsive></iframe>
                 </div>
                 <div>
                     <p>Responsive Height (Image)</p>
@@ -203,13 +203,13 @@
 
             <div class="uk-flex-inline uk-margin uk-grid-small" uk-grid>
                 <div>
-                    <p>Image</p>
+                    <p class="uk-margin-bottom">Image</p>
                     <a class="uk-logo" href="#">
                         <img src="images/photo.jpg" width="200" alt="">
                     </a>
                 </div>
                 <div>
-                    <p>+ Inverse Image</p>
+                    <p class="uk-margin-bottom">+ Inverse Image</p>
                     <a class="uk-logo" href="#">
                         <img src="images/photo.jpg" width="200" alt="">
                         <img class="uk-logo-inverse" src="images/dark.jpg" width="200" alt="">
@@ -221,20 +221,20 @@
 
             <div class="uk-child-width-auto" uk-grid>
                 <div>
-                    <p>Image</p>
+                    <p class="uk-margin-bottom">Image</p>
                     <img id="svg1" class="svg-1" src="../images/navbar-toggle.svg" uk-svg>
                 </div>
                 <div>
-                    <p>Width</p>
+                    <p class="uk-margin-bottom">Width</p>
                     <img id="svg2" class="svg-2" src="../images/navbar-toggle.svg" width="40" height="40" uk-svg>
                 </div>
                 <div>
-                    <p>Symbol + ID</p>
+                    <p class="uk-margin-bottom">Symbol + ID</p>
                     <img width="20" height="20" src="../images/icons.svg#table" uk-svg>
                     <img width="20" height="20" src="../images/icons.svg#trash" uk-svg>
                 </div>
                 <div>
-                    <p>Symbol + ID + Fallback</p>
+                    <p class="uk-margin-bottom">Symbol + ID + Fallback</p>
                     <img width="20" height="20" src="../images/nav-parent-close.svg#notfound" uk-svg>
                     <img width="20" height="20" src="../images/nav-parent-open.svg#notfound" uk-svg>
                 </div>

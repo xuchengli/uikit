@@ -35,7 +35,6 @@
 /*
  * 1. Allow items to wrap into the next line
  * 2. Reset lists
- * 3. Gutter
  */
 
 .uk-dotnav {
@@ -47,11 +46,8 @@
     -webkit-flex-wrap: wrap;
     flex-wrap: wrap;
     /* 2 */
-    margin: 0;
     padding: 0;
     list-style: none;
-    /* 3 */
-    margin-left: -@dotnav-margin-horizontal;
     .hook-dotnav;
 }
 
@@ -65,9 +61,10 @@
     -ms-flex: none;
     -webkit-flex: none;
     flex: none;
-    /* 2 */
-    padding-left: @dotnav-margin-horizontal;
 }
+
+/* 2 */
+.uk-dotnav > * + * { padding-left: @dotnav-margin-horizontal; }
 
 
 /* Items
@@ -126,13 +123,10 @@
     -ms-flex-direction: column;
     -webkit-flex-direction: column;
     flex-direction: column;
-    /* 2 */
-    margin-left: 0;
-    margin-top: -@dotnav-margin-vertical;
 }
 
 /* 2 */
-.uk-dotnav-vertical > * {
+.uk-dotnav-vertical > * + * {
     padding-left: 0;
     padding-top: @dotnav-margin-vertical;
 }

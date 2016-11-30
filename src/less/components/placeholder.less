@@ -20,23 +20,13 @@
  ========================================================================== */
 
 .uk-placeholder {
-    margin-bottom: @placeholder-margin-vertical;
     padding: @placeholder-padding-vertical @placeholder-padding-horizontal;
     background: @placeholder-background;
     .hook-placeholder;
 }
 
-/*
- * Add margin if adjacent element
- */
-
+/* Add margin if adjacent element */
 * + .uk-placeholder { margin-top: @placeholder-margin-vertical; }
-
-/*
- * Remove margin from the last-child
- */
-
-.uk-placeholder > :last-child { margin-bottom: 0; }
 
 
 // Hooks

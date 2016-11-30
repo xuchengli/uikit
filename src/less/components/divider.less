@@ -33,18 +33,15 @@
 
 /*
  * 1. Reset default `hr`
- * 2. Set margin if a `div` is used for semantical reason
  */
 
 [class*='uk-divider'] {
     /* 1 */
     border: none;
-    /* 2 */
-    margin-bottom: @divider-margin-vertical;
 }
 
 /* Add margin if adjacent element */
-* + [class*='uk-divider'] { margin-top: @divider-margin-vertical }
+* + [class*='uk-divider'] { margin-top: @divider-margin-vertical; }
 
 
 /* Icon

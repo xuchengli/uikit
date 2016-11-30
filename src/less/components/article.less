@@ -30,6 +30,9 @@
     .hook-article;
 }
 
+/* Add margin if adjacent element */
+* + .uk-article { margin-top: @article-margin-top; }
+
 /*
  * Micro clearfix
  */
@@ -42,27 +45,11 @@
 
 .uk-article::after { clear: both; }
 
-/*
- * Remove margin from the last-child
- */
-
-.uk-article > :last-child { margin-bottom: 0; }
-
-
-/* Adjacent sibling
- ========================================================================== */
-
-.uk-article + .uk-article {
-    margin-top: @article-margin-top;
-    .hook-article-adjacent;
-}
-
 
 /* Title
  ========================================================================== */
 
 .uk-article-title {
-    margin-top: 0;
     font-size: @article-title-font-size;
     line-height: @article-title-line-height;
     .hook-article-title;
@@ -86,7 +73,6 @@
 .hook-article-misc;
 
 .hook-article() {}
-.hook-article-adjacent() {}
 .hook-article-title() {}
 .hook-article-meta() {}
 .hook-article-misc() {}

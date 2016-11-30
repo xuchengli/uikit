@@ -33,6 +33,7 @@
 @panel-scrollable-padding:                      10px;
 @panel-scrollable-border-width:                 @global-border-width;
 @panel-scrollable-border:                       @global-border;
+@panel-scrollable-margin-vertical:              @global-margin;
 
 @height-small-height:                           150px;
 @height-medium-height:                          300px;
@@ -76,12 +77,6 @@
 
 .uk-panel::after { clear: both; }
 
-/*
- * Remove margin from the last-child
- */
-
-.uk-panel > :last-child { margin-bottom: 0; }
-
 
 /*
  * Scrollable
@@ -96,6 +91,9 @@
     resize: both;
     .hook-panel-scrollable;
 }
+
+/* Add margin if adjacent element */
+* + .uk-panel-scrollable { margin-top: @panel-scrollable-margin-vertical; }
 
 
 /* Clearfix
@@ -148,8 +146,6 @@
     overflow: auto;
     -webkit-overflow-scrolling: touch;
 }
-
-.uk-overflow-auto > :last-child { margin-bottom: 0; }
 
 
 /* Resize
