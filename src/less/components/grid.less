@@ -89,25 +89,31 @@
  * Default
  */
 
-/* Horizontal */
-.uk-grid { margin-left: -@grid-gutter-horizontal; }
-.uk-grid > * { padding-left: @grid-gutter-horizontal; }
+.uk-grid {
+    margin-top: -@grid-gutter-vertical;
+    margin-left: -@grid-gutter-horizontal;
+}
 
-/* Vertical */
-.uk-grid + .uk-grid,
-.uk-grid > .uk-grid-margin,
+.uk-grid > * {
+    margin-top: @grid-gutter-vertical;
+    padding-left: @grid-gutter-horizontal;
+}
+
 * + .uk-grid-margin { margin-top: @grid-gutter-vertical; }
 
 /* Desktop and bigger */
 @media (min-width: @breakpoint-large) {
 
-    /* Horizontal */
-    .uk-grid { margin-left: -@grid-gutter-horizontal-l; }
-    .uk-grid > * { padding-left: @grid-gutter-horizontal-l; }
+    .uk-grid {
+        margin-top: -@grid-gutter-vertical-l;
+        margin-left: -@grid-gutter-horizontal-l;
+    }
 
-    /* Vertical */
-    .uk-grid + .uk-grid,
-    .uk-grid > .uk-grid-margin,
+    .uk-grid > * {
+        margin-top: @grid-gutter-vertical-l;
+        padding-left: @grid-gutter-horizontal-l;
+    }
+
     * + .uk-grid-margin { margin-top: @grid-gutter-vertical-l; }
 
 }
@@ -116,51 +122,63 @@
  * Small
  */
 
-/* Horizontal */
-.uk-grid-small { margin-left: -@grid-small-gutter-horizontal; }
-.uk-grid-small > * { padding-left: @grid-small-gutter-horizontal; }
+.uk-grid-small {
+    margin-top: -@grid-small-gutter-vertical;
+    margin-left: -@grid-small-gutter-horizontal;
+}
 
-/* Vertical */
-.uk-grid + .uk-grid-small,
-.uk-grid-small > .uk-grid-margin,
+.uk-grid-small > * {
+    margin-top: @grid-small-gutter-vertical;
+    padding-left: @grid-small-gutter-horizontal;
+}
+
 * + .uk-grid-margin-small { margin-top: @grid-small-gutter-vertical; }
 
 /*
  * Medium
  */
 
-/* Horizontal */
-.uk-grid-medium { margin-left: -@grid-medium-gutter-horizontal; }
-.uk-grid-medium > * { padding-left: @grid-medium-gutter-horizontal; }
+.uk-grid-medium {
+    margin-top: -@grid-medium-gutter-vertical;
+    margin-left: -@grid-medium-gutter-horizontal;
+}
 
-/* Vertical */
-.uk-grid + .uk-grid-medium,
-.uk-grid-medium > .uk-grid-margin,
+.uk-grid-medium > * {
+    margin-top: @grid-medium-gutter-vertical;
+    padding-left: @grid-medium-gutter-horizontal;
+}
+
 * + .uk-grid-margin-medium { margin-top: @grid-medium-gutter-vertical; }
 
 /*
  * Large
  */
 
-/* Horizontal */
-.uk-grid-large { margin-left: -@grid-large-gutter-horizontal; }
-.uk-grid-large > * { padding-left: @grid-large-gutter-horizontal; }
+.uk-grid-large {
+    margin-top: -@grid-large-gutter-vertical;
+    margin-left: -@grid-large-gutter-horizontal;
+}
 
-/* Vertical */
-.uk-grid + .uk-grid-large,
-.uk-grid-large > .uk-grid-margin,
+.uk-grid-large > * {
+    margin-top: @grid-large-gutter-vertical;
+    padding-left: @grid-large-gutter-horizontal;
+}
+
 * + .uk-grid-margin-large { margin-top: @grid-large-gutter-vertical; }
 
 /* Desktop and bigger */
 @media (min-width: @breakpoint-large) {
 
-    /* Horizontal */
-    .uk-grid-large { margin-left: -@grid-large-gutter-horizontal-l; }
-    .uk-grid-large > * { padding-left: @grid-large-gutter-horizontal-l; }
+    .uk-grid-large {
+        margin-top: -@grid-large-gutter-vertical-l;
+        margin-left: -@grid-large-gutter-horizontal-l;
+    }
 
-    /* Vertical */
-    .uk-grid + .uk-grid-large,
-    .uk-grid-large > .uk-grid-margin,
+    .uk-grid-large > * {
+        margin-top: @grid-large-gutter-vertical-l;
+        padding-left: @grid-large-gutter-horizontal-l;
+    }
+
     * + .uk-grid-margin-large { margin-top: @grid-large-gutter-vertical-l; }
 
 }
@@ -170,13 +188,21 @@
  */
 
 /* Horizontal */
-.uk-grid-collapse { margin-left: 0; }
-.uk-grid-collapse > * { padding-left: 0; }
+.uk-grid-collapse {
+    margin-top: 0;
+    margin-left: 0;
+}
 
-/* Vertical */
-.uk-grid + .uk-grid-collapse,
-.uk-grid-collapse > .uk-grid-margin { margin-top: 0; }
+.uk-grid.uk-grid-collapse > * {
+    margin-top: 0;
+    padding-left: 0;
+}
 
+/*
+ * Vertical gutter between grids
+ */
+
+.uk-grid + .uk-grid { margin-top: 0; }
 
 /* Divider
  ========================================================================== */
@@ -192,7 +218,7 @@
 }
 
 /* Vertical */
-.uk-grid-divider.uk-grid-stack > .uk-grid-margin::before {
+.uk-grid-divider.uk-grid-stack > :not(.uk-first-row)::before {
     content: "";
     position: absolute;
     left: 0;
@@ -211,9 +237,10 @@
 .uk-grid-divider > :not(.uk-first-column)::before { left: @grid-gutter-horizontal; }
 
 /* Vertical */
-.uk-grid-divider.uk-grid-stack > .uk-grid-margin { margin-top: (@grid-gutter-vertical * 2); }
+.uk-grid-divider.uk-grid-stack { margin-top: -(@grid-gutter-horizontal * 2); }
+.uk-grid-divider.uk-grid-stack > * { margin-top: (@grid-gutter-vertical * 2); }
 
-.uk-grid-divider.uk-grid-stack > .uk-grid-margin::before {
+.uk-grid-divider.uk-grid-stack > :not(.uk-first-row)::before {
     top: -@grid-gutter-vertical;
     left: (@grid-gutter-horizontal * 2);
 }
@@ -228,9 +255,10 @@
     .uk-grid-divider > :not(.uk-first-column)::before { left: @grid-gutter-horizontal-l; }
 
     /* Vertical */
-    .uk-grid-divider.uk-grid-stack > .uk-grid-margin { margin-top: (@grid-gutter-vertical-l * 2); }
+    .uk-grid-divider.uk-grid-stack { margin-top: -(@grid-gutter-vertical-l * 2); }
+    .uk-grid-divider.uk-grid-stack > * { margin-top: (@grid-gutter-vertical-l * 2); }
 
-    .uk-grid-divider.uk-grid-stack > .uk-grid-margin::before {
+    .uk-grid-divider.uk-grid-stack > :not(.uk-first-row)::before {
         top: -@grid-gutter-vertical-l;
         left: (@grid-gutter-horizontal-l * 2);
     }
@@ -248,9 +276,10 @@
 .uk-grid-divider.uk-grid-small > :not(.uk-first-column)::before { left: @grid-small-gutter-horizontal; }
 
 /* Vertical */
-.uk-grid-divider.uk-grid-small.uk-grid-stack > .uk-grid-margin { margin-top: (@grid-small-gutter-vertical * 2); }
+.uk-grid-divider.uk-grid-small.uk-grid-stack { margin-top: -(@grid-small-gutter-vertical * 2); }
+.uk-grid-divider.uk-grid-small.uk-grid-stack > * { margin-top: (@grid-small-gutter-vertical * 2); }
 
-.uk-grid-divider.uk-grid-small.uk-grid-stack > .uk-grid-margin::before {
+.uk-grid-divider.uk-grid-small.uk-grid-stack > :not(.uk-first-row)::before {
     top: -@grid-small-gutter-vertical;
     left: (@grid-small-gutter-horizontal * 2);
 }
@@ -266,9 +295,10 @@
 .uk-grid-divider.uk-grid-medium > :not(.uk-first-column)::before { left: @grid-medium-gutter-horizontal; }
 
 /* Vertical */
-.uk-grid-divider.uk-grid-medium.uk-grid-stack > .uk-grid-margin { margin-top: (@grid-medium-gutter-vertical * 2); }
+.uk-grid-divider.uk-grid-medium.uk-grid-stack { margin-top: -(@grid-medium-gutter-vertical * 2); }
+.uk-grid-divider.uk-grid-medium.uk-grid-stack > * { margin-top: (@grid-medium-gutter-vertical * 2); }
 
-.uk-grid-divider.uk-grid-medium.uk-grid-stack > .uk-grid-margin::before {
+.uk-grid-divider.uk-grid-medium.uk-grid-stack > :not(.uk-first-row)::before {
     top: -@grid-medium-gutter-vertical;
     left: (@grid-medium-gutter-horizontal * 2);
 }
@@ -284,9 +314,10 @@
 .uk-grid-divider.uk-grid-large > :not(.uk-first-column)::before { left: @grid-large-gutter-horizontal; }
 
 /* Vertical */
-.uk-grid-divider.uk-grid-large.uk-grid-stack > .uk-grid-margin { margin-top: (@grid-large-gutter-vertical * 2); }
+.uk-grid-divider.uk-grid-large.uk-grid-stack { margin-top: -(@grid-large-gutter-vertical * 2); }
+.uk-grid-divider.uk-grid-large.uk-grid-stack > * { margin-top: (@grid-large-gutter-vertical * 2); }
 
-.uk-grid-divider.uk-grid-large.uk-grid-stack > .uk-grid-margin::before {
+.uk-grid-divider.uk-grid-large.uk-grid-stack > :not(.uk-first-row)::before {
     top: -@grid-large-gutter-vertical;
     left: (@grid-large-gutter-horizontal * 2);
 }
@@ -301,9 +332,10 @@
     .uk-grid-divider.uk-grid-large > :not(.uk-first-column)::before { left: @grid-large-gutter-horizontal-l; }
 
     /* Vertical */
-    .uk-grid-divider.uk-grid-large.uk-grid-stack > .uk-grid-margin { margin-top: (@grid-large-gutter-vertical-l * 2); }
+    .uk-grid-divider.uk-grid-large.uk-grid-stack { margin-top: -(@grid-large-gutter-vertical-l * 2); }
+    .uk-grid-divider.uk-grid-large.uk-grid-stack > * { margin-top: (@grid-large-gutter-vertical-l * 2); }
 
-    .uk-grid-divider.uk-grid-large.uk-grid-stack > .uk-grid-margin::before {
+    .uk-grid-divider.uk-grid-large.uk-grid-stack > :not(.uk-first-row)::before {
         top: -@grid-large-gutter-vertical-l;
         left: (@grid-large-gutter-horizontal-l * 2);
     }
@@ -358,6 +390,6 @@
 .hook-inverse() {
 
     .uk-grid-divider > :not(.uk-first-column)::before { border-left-color: @inverse-grid-divider-border; }
-    .uk-grid-divider.uk-grid-stack > .uk-grid-margin::before { border-top-color: @inverse-grid-divider-border; }
+    .uk-grid-divider.uk-grid-stack > :not(.uk-first-row)::before { border-top-color: @inverse-grid-divider-border; }
 
 }

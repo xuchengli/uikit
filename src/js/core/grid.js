@@ -9,7 +9,6 @@ export default function (UIkit) {
         name: 'grid',
 
         defaults: {
-            margin: 'uk-grid-margin',
             clsStack: 'uk-grid-stack'
         },
 
@@ -17,7 +16,7 @@ export default function (UIkit) {
 
             handler() {
 
-                this.$el.toggleClass(this.clsStack, !this.$el.children().filter((i, el) => el.offsetHeight).not(`.${this.firstColumn}`).length);
+                this.$el.toggleClass(this.clsStack, this.stacks);
 
             },
 

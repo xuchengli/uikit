@@ -5,12 +5,12 @@ export default function (UIkit) {
     UIkit.component('margin', {
 
         props: {
-            margin: String,
-            firstColumn: Boolean
+            firstRow: String,
+            firstColumn: String
         },
 
         defaults: {
-            margin: 'uk-margin-small-top',
+            firstRow: 'uk-first-row',
             firstColumn: 'uk-first-column'
         },
 
@@ -22,9 +22,44 @@ export default function (UIkit) {
                     return;
                 }
 
-                var columns = this.$el.children()
+                var children = this.$el.children();
+
+                if (!children.length) {
+                    return;
+                }
+
+                this.$el.css('marginTop', '');
+
+                var parent = parseFloat(this.$el.css('marginTop')),
+                    child =  parseFloat(children.eq(0).css('marginTop')),
+                    prev = this.$el.prev();
+
+                while (prev.length && ['absolute', 'fixed'].indexOf(prev.css('position')) !== -1) {
+                    prev = prev.prev();
+                }
+
+                console.log((prev))
+
+                if (parent + child && !prev.hasClass('uk-'+this.$options.name)) {
+
+                    var margin = parent - child;
+
+                    if (prev.length) {
+                        prev = parseFloat(this.$el.prev().css('marginBottom'));
+
+                        if (parent <= prev && (margin >= 0 && margin < prev || child >= prev)) {
+                            margin = -child;
+                        }
+                    }
+
+                    this.$el.attr('style', `${this.$el.attr('style') || ''};margin-top: ${margin}px !important;`);
+                }
+
+                this.stacks = true;
+
+                var columns = children
                         .filter((_, el) => el.offsetHeight > 0)
-                        .removeClass(this.margin)
+                        .removeClass(this.firstRow)
                         .removeClass(this.firstColumn),
                     rows = [[columns.get(0)]];
 
@@ -41,6 +76,8 @@ export default function (UIkit) {
                         }
 
                         if (bottom > rowTop) {
+
+                            this.stacks = false;
 
                             if (el.offsetLeft < row[0].offsetLeft) {
                                 row.unshift(el);
@@ -63,7 +100,7 @@ export default function (UIkit) {
                 rows.forEach((row, i) =>
                     row.forEach((el, j) =>
                         $(el)
-                            .toggleClass(this.margin, i !== 0)
+                            .toggleClass(this.firstRow, i === 0)
                             .toggleClass(this.firstColumn, j === 0)
                     )
                 );
