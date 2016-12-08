@@ -38,8 +38,6 @@ export default function (UIkit) {
                     prev = prev.prev();
                 }
 
-                console.log((prev))
-
                 if (parent + child && !prev.hasClass('uk-'+this.$options.name)) {
 
                     var margin = parent - child;
