@@ -31,19 +31,19 @@ export default function (UIkit) {
                 this.$el.css('marginTop', '');
 
                 var parent = parseFloat(this.$el.css('marginTop')),
-                    child =  parseFloat(children.eq(0).css('marginTop')),
+                    child = parseFloat(children.eq(0).css('marginTop')),
                     prev = this.$el.prev();
 
-                while (prev.length && ['absolute', 'fixed'].indexOf(prev.css('position')) !== -1) {
+                while (prev.length && (!prev.is(':visible') || ['absolute', 'fixed'].indexOf(prev.css('position')) !== -1)) {
                     prev = prev.prev();
                 }
 
-                if (parent + child && !prev.hasClass('uk-'+this.$options.name)) {
+                if (parent + child && !prev.hasClass(`uk-${this.$options.name}`)) {
 
                     var margin = parent - child;
 
                     if (prev.length) {
-                        prev = parseFloat(this.$el.prev().css('marginBottom'));
+                        prev = parseFloat(prev.css('marginBottom'));
 
                         if (parent <= prev && (margin >= 0 && margin < prev || child >= prev)) {
                             margin = -child;
