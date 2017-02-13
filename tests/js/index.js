@@ -38,7 +38,7 @@ $html.attr('dir', dir);
 var style = styles[storage[key]] || styles.theme;
 
 // add style
-document.writeln(`<link rel="stylesheet" href="${style.file}">`);
+document.writeln(`<link rel="stylesheet" href="${dir !== 'rtl' ? style.file : style.file.replace('.css', '').concat('.rtl.css')}">`);
 
 // add javascripts
 ['../dist/js/uikit-core.js']
@@ -184,7 +184,6 @@ $(() => {
 
     if (dir == 'rtl') {
         $rtl.prop('checked', true);
-        $('link[rel=stylesheet]').each((i, el) => $(el).attr('href', el.href.replace('.css', '.rtl.css')));
     }
 
     $html.css('padding-top', '');
