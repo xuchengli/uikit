@@ -73,7 +73,40 @@ let Animations = {
                     let duration = slideshow.duration * (revert ? progress : (1-progress));
                     
                     Transition.start(slideshow.$current[0], {opacity:`${1-percent}`, duration});
-                    Transition.start(slideshow.$next[0], {opacity:`${percent}`, duration}).then(() => {
+                    Transition.start(slideshow.$next[0], {opacity:`${percent}`}, duration).then(() => {
+                        animation.finish(revert);
+                    });
+                }
+
+                progress = percent;
+            }
+        };
+
+        return animation;
+    },
+
+    scale: (slideshow, dir) => {
+
+        let progress = 0;
+        let animation = {
+
+            finish: (revert) => {
+                Transition.stop(slideshow.$current[0]);
+                slideshow.$current.css({transform: '', 'opacity': ''});
+                slideshow.$animationEnd(revert);
+            },
+
+            update: (percent, revert) => {
+                
+                percent = parseFloat(percent == undefined ? 1 : percent);
+                
+                if (percent < 1 && !revert) {
+                    slideshow.$current.css({opacity:`${1-percent}`, transform: `scale(${1+percent})`});
+                } else {
+                    
+                    let duration = slideshow.duration * (revert ? progress : (1-progress));
+                    
+                    Transition.start(slideshow.$current[0], {opacity:`${1-percent}`, transform: `scale(${revert ? 1:2})`}, duration).then(() => {
                         animation.finish(revert);
                     });
                 }
