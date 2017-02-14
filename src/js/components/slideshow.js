@@ -30,7 +30,7 @@ let Animations = {
                     slideshow.$next.css({transform:`translateX(${(1-percent) * 100 * dir}%)`});
                 } else {
 
-                    let duration = slideshow.duration * (1-progress);
+                    let duration = slideshow.duration * (revert ? progress : (1-progress));
 
                     Transition.start(slideshow.$current[0], {transform:`translateX(${percent * -100 * dir}%)`}, duration);
                     Transition.start(slideshow.$next[0], {transform:`translateX(${(1-percent) * 100 * dir}%)`}, duration).then(() => {
@@ -70,7 +70,7 @@ let Animations = {
                     slideshow.$next.css({opacity:`${percent}`});
                 } else {
                     
-                    let duration = slideshow.duration * (1-progress);
+                    let duration = slideshow.duration * (revert ? progress : (1-progress));
                     
                     Transition.start(slideshow.$current[0], {opacity:`${1-percent}`, duration});
                     Transition.start(slideshow.$next[0], {opacity:`${percent}`, duration}).then(() => {
@@ -110,9 +110,9 @@ let Animations = {
                     slideshow.$next.css({transform:`translateX(${(1-percent) * 100 * dir}%)`});
                 } else {
 
-                    let duration = slideshow.duration * (1-progress);
+                    let duration = slideshow.duration * (revert ? progress : (1-progress));
 
-                    Transition.start(slideshow.$current[0], {transform:`translateX(${(.4 * percent) * -100 * dir}%) scale(0.8)`}, duration);
+                    Transition.start(slideshow.$current[0], {transform:`translateX(${(.4 * percent) * -100 * dir}%) scale(${revert ? 1:.8})`}, duration);
                     Transition.start(slideshow.$next[0], {transform:`translateX(${(1-percent) * 100 * dir}%)`}, duration).then(() => {
                         animation.finish(revert);
                     });
@@ -219,11 +219,9 @@ UIkit.component('slideshow', {
             handler(e) {
                 e.preventDefault();
 
-                let point = { x: e.clientX, y: e.clientY };
-
                 if (this.$animation) {
 
-                    if (this.dragged && this.$animation.dir == (-1 * this.animation.dir) ) {
+                    if (this.dragged && this.$animation.dir != this.lastpointer.dir) {
                          this.$animation.update(0, true);
                     } else {
                         this.$animation.update(1);
@@ -279,8 +277,10 @@ UIkit.component('slideshow', {
                 this.$animation = null;
                 this.slides.removeClass('uk-active uk-next uk-inprogress')
 
-                if (!revert) {
-                    this.slides.filter(this.$next).addClass('uk-active');
+                if (revert) {
+                    this.$current.addClass('uk-active');
+                } else {
+                    this.$next.addClass('uk-active');
                     this.current = index;
                 }
             };
