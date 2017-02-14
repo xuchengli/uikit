@@ -10,32 +10,39 @@ let Animations = {
         slideshow.$current.css('transform', 'translateX(0)');
         slideshow.$next.css('transform', `translateX(${dir * 100}%)`);
 
-        let finish = (revert) => {
-            Transition.stop(slideshow.$current[0]);
-            Transition.stop(slideshow.$next[0]);
-            slideshow.$current.css('transform', '');
-            slideshow.$next.css('transform', '');
-            slideshow.$animationEnd(revert);
-        };
-
-        let update = (percent, revert) => {
+        let progress = 0;
+        let animation = {
             
-            percent = parseFloat(percent == undefined ? 1 : percent);
-            
-            let duration = 400;
+            finish: (revert) => {
+                Transition.stop(slideshow.$current[0]);
+                Transition.stop(slideshow.$next[0]);
+                slideshow.$current.css({transform: ''});
+                slideshow.$next.css({transform: ''});
+                slideshow.$animationEnd(revert);
+            },
 
-            if (percent < 1 && !revert) {
-                slideshow.$current.css({transform:`translateX(${percent * -100 * dir}%)`});
-                slideshow.$next.css({transform:`translateX(${(1-percent) * 100 * dir}%)`});
-            } else {
-                Transition.start(slideshow.$current[0], {transform:`translateX(${percent * -100 * dir}%)`, duration});
-                Transition.start(slideshow.$next[0], {transform:`translateX(${(1-percent) * 100 * dir}%)`, duration}).then(() => {
-                    finish(revert);
-                });
+            update: (percent, revert) => {
+                
+                percent = parseFloat(percent == undefined ? 1 : percent);
+
+                if (percent < 1 && !revert) {
+                    slideshow.$current.css({transform:`translateX(${percent * -100 * dir}%)`});
+                    slideshow.$next.css({transform:`translateX(${(1-percent) * 100 * dir}%)`});
+                } else {
+
+                    let duration = slideshow.duration * (1-progress);
+
+                    Transition.start(slideshow.$current[0], {transform:`translateX(${percent * -100 * dir}%)`}, duration);
+                    Transition.start(slideshow.$next[0], {transform:`translateX(${(1-percent) * 100 * dir}%)`}, duration).then(() => {
+                        animation.finish(revert);
+                    });
+                }
+
+                progress = percent;
             }
         };
 
-        return {update, finish};
+        return animation;
     },
 
     fade: (slideshow, dir) => {
@@ -43,32 +50,39 @@ let Animations = {
         slideshow.$current.css('opacity', '1');
         slideshow.$next.css('opacity', '0');
 
-        let finish = (revert) => {
-            Transition.stop(slideshow.$current[0]);
-            Transition.stop(slideshow.$next[0]);
-            slideshow.$current.css('opacity', '');
-            slideshow.$next.css('opacity', '');
-            slideshow.$animationEnd(revert);
-        };
+        let progress = 0;
+        let animation = {
 
-        let update = (percent, revert) => {
-            
-            percent = parseFloat(percent == undefined ? 1 : percent);
-            
-            let duration = slideshow.duration;
+            finish: (revert) => {
+                Transition.stop(slideshow.$current[0]);
+                Transition.stop(slideshow.$next[0]);
+                slideshow.$current.css('opacity', '');
+                slideshow.$next.css('opacity', '');
+                slideshow.$animationEnd(revert);
+            },
 
-            if (percent < 1 && !revert) {
-                slideshow.$current.css({opacity:`${1-percent}`});
-                slideshow.$next.css({opacity:`${percent}`});
-            } else {
-                Transition.start(slideshow.$current[0], {opacity:`${1-percent}`, duration});
-                Transition.start(slideshow.$next[0], {opacity:`${percent}`, duration}).then(() => {
-                    finish(revert);
-                });
+            update: (percent, revert) => {
+                
+                percent = parseFloat(percent == undefined ? 1 : percent);
+                
+                if (percent < 1 && !revert) {
+                    slideshow.$current.css({opacity:`${1-percent}`});
+                    slideshow.$next.css({opacity:`${percent}`});
+                } else {
+                    
+                    let duration = slideshow.duration * (1-progress);
+                    
+                    Transition.start(slideshow.$current[0], {opacity:`${1-percent}`, duration});
+                    Transition.start(slideshow.$next[0], {opacity:`${percent}`, duration}).then(() => {
+                        animation.finish(revert);
+                    });
+                }
+
+                progress = percent;
             }
         };
 
-        return {update, finish};
+        return animation;
     },
 
     swipe: (slideshow, dir) => {
@@ -76,33 +90,39 @@ let Animations = {
         slideshow.$current.css('transform', 'translateX(0) scale(0)');
         slideshow.$next.css({transform: `translateX(${dir * 100}%)`, zIndex:3});
 
-        let finish = (revert) => {
-            Transition.stop(slideshow.$current[0]);
-            Transition.stop(slideshow.$next[0]);
-            slideshow.$current.css('transform', '');
-            slideshow.$next.css({transform: '', zIndex:''});
-            slideshow.$animationEnd(revert);
-        };
+        let progress = 0;
+        let animation = {
 
-        let update = (percent, revert) => {
-            
-            percent = parseFloat(percent == undefined ? 1 : percent);
-            let percent2 = .4 * percent;
-            
-            let duration = 400;
+            finish: (revert) => {
+                Transition.stop(slideshow.$current[0]);
+                Transition.stop(slideshow.$next[0]);
+                slideshow.$current.css('transform', '');
+                slideshow.$next.css({transform: '', zIndex:''});
+                slideshow.$animationEnd(revert);
+            },
 
-            if (percent < 1 && !revert) {
-                slideshow.$current.css({transform:`translateX(${percent2 * -100 * dir}%) scale(${1-(.2*percent)})`});
-                slideshow.$next.css({transform:`translateX(${(1-percent) * 100 * dir}%)`});
-            } else {
-                Transition.start(slideshow.$current[0], {transform:`translateX(${percent2 * -100 * dir}%) scale(0.8)`, duration});
-                Transition.start(slideshow.$next[0], {transform:`translateX(${(1-percent) * 100 * dir}%)`, duration}).then(() => {
-                    finish(revert);
-                });
+            update: (percent, revert) => {
+                
+                percent = parseFloat(percent == undefined ? 1 : percent);
+
+                if (percent < 1 && !revert) {
+                    slideshow.$current.css({transform:`translateX(${(.4 * percent) * -100 * dir}%) scale(${1-(.2*percent)})`});
+                    slideshow.$next.css({transform:`translateX(${(1-percent) * 100 * dir}%)`});
+                } else {
+
+                    let duration = slideshow.duration * (1-progress);
+
+                    Transition.start(slideshow.$current[0], {transform:`translateX(${(.4 * percent) * -100 * dir}%) scale(0.8)`}, duration);
+                    Transition.start(slideshow.$next[0], {transform:`translateX(${(1-percent) * 100 * dir}%)`}, duration).then(() => {
+                        animation.finish(revert);
+                    });
+                }
+
+                progress = percent;
             }
         };
 
-        return {update, finish};
+        return animation;
     }
 
 }
@@ -166,6 +186,8 @@ UIkit.component('slideshow', {
                 }
 
                 this.lastpointer = { x: e.clientX, y: e.clientY, dir: this.lastpointer.x > e.clientX ? 1:-1 };
+                
+                let diff = (this.pointer.x - e.clientX) / this.$el.width();
 
                 if (!this.$animation) {
 
@@ -176,7 +198,16 @@ UIkit.component('slideshow', {
                     }
                 }
 
-                let diff = (this.pointer.x - e.clientX) / this.$el.width();
+                if (diff * this.$animation.dir < 0) {
+                    
+                    this.$animation.finish(true);
+
+                    if (this.lastpointer.dir == -1) {
+                        this.show(this.current - 1 < 0 ? this.slides.length-1:this.current - 1, 0, -1);
+                    } else {
+                        this.show(this.current + 1 == this.slides.length ? 0:this.current + 1, 0, 1);
+                    }
+                }
 
                 this.$animation.update(Math.abs(diff));
                 this.dragged = true;
@@ -246,9 +277,10 @@ UIkit.component('slideshow', {
             this.$animationEnd = (revert) => {
                 
                 this.$animation = null;
+                this.slides.removeClass('uk-active uk-next uk-inprogress')
 
                 if (!revert) {
-                    this.slides.removeClass('uk-active uk-next uk-inprogress').filter(this.$next).addClass('uk-active');
+                    this.slides.filter(this.$next).addClass('uk-active');
                     this.current = index;
                 }
             };

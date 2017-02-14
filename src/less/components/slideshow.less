@@ -1,0 +1,25 @@
+.uk-slideshow-slides {
+    position: relative;
+    overflow: hidden;
+}
+
+.uk-slideshow-slides > * {
+    position: absolute;
+    top: 0;
+    left: 0;
+    user-select: none;
+    visibility: hidden;
+}
+
+.uk-slideshow-slides > .uk-inprogress {
+    visibility: visible;
+}
+
+.uk-slideshow-slides > .uk-active {
+    visibility: visible;
+    z-index: 2;
+}
+
+.test {
+    color: red;
+}
