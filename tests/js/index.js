@@ -112,6 +112,7 @@ $(() => {
         'tab',
         'table',
         'text',
+        'tile',
         'toggle',
         'totop',
         'transition',
