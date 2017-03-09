@@ -32,6 +32,8 @@ function plugin(UIkit) {
 
         connected() {
 
+            var $self = this;
+
             this.current = 0;
 
             this.container = this.$el.find('.uk-slideshow-slides');
@@ -42,6 +44,20 @@ function plugin(UIkit) {
             }
 
             this.slides.eq(this.current).addClass('uk-active');
+
+            // handle [uk-slide-item] clicks
+            this.$el.on('click', '[uk-slide-item]', function(e) {
+                e.preventDefault();
+
+                var target = this.getAttribute('uk-slide-item');
+
+                if (target == 'next' || target == 'previous') {
+                    $self[target]();
+                } else {
+                    $self.show(Number(target));
+                }
+
+            }).find('[uk-slide-item]').removeClass('uk-active').filter(`[uk-slide-item="${this.current}"]`).addClass('uk-active');;
 
             if (this.autoplay) {
                 this.start();
@@ -157,15 +173,15 @@ function plugin(UIkit) {
                         return;
                     }
 
-                    var media = slide.children('img,video,iframe').eq(0);
+                    var media = slide.children('img,video,iframe').eq(0), content = slide.children('div').eq(0);
 
-                    slide.data('media', media);
+                    slide.data({media, content});
 
                     if (media.length) {
 
                         type = media[0].nodeName.toLowerCase();
 
-                        switch(type) {
+                        switch (type) {
 
                             case 'img':
 
@@ -266,12 +282,18 @@ function plugin(UIkit) {
                         ele.addClass(animation[0]);
                     });
                 }
+
+                this.$el.find('[uk-slide-item]').removeClass('uk-active').filter(`[uk-slide-item="${this.current}"]`).addClass('uk-active');
             },
 
             show(index, percent, dir) {
 
                 if (this.$animation) {
                     this.$animation.finish();
+                }
+
+                if (index == this.current) {
+                    return;
                 }
 
                 dir = dir || (index < this.current ? -1 : 1);
@@ -389,8 +411,8 @@ function plugin(UIkit) {
 
         slide: (slideshow, dir) => {
 
-            slideshow.$current.css('transform', 'translateX(0)');
-            slideshow.$next.css('transform', `translateX(${dir * 100}%)`);
+            var current = slideshow.$current.css('transform', 'translateX(0)');
+            var next = slideshow.$next.css('transform', `translateX(${dir * 100}%)`);
 
             var progress = 0;
             var animation = {
@@ -398,8 +420,8 @@ function plugin(UIkit) {
                 finish: (revert) => {
                     Transition.stop(slideshow.$current[0]);
                     Transition.stop(slideshow.$next[0]);
-                    slideshow.$current.css({transform: ''});
-                    slideshow.$next.css({transform: ''});
+                    current.css({transform: ''});
+                    next.css({transform: ''});
                     slideshow.$animationEnd(revert);
                 },
 
@@ -408,14 +430,14 @@ function plugin(UIkit) {
                     percent = parseFloat(percent == undefined ? 1 : percent);
 
                     if (percent < 1 && !revert) {
-                        slideshow.$current.css({transform:`translate3d(${percent * -100 * dir}%, 0, 0)`});
-                        slideshow.$next.css({transform:`translate3d(${(1-percent) * 100 * dir}%, 0, 0)`});
+                        current.css({transform:`translate3d(${percent * -100 * dir}%, 0, 0)`});
+                        next.css({transform:`translate3d(${(1-percent) * 100 * dir}%, 0, 0)`});
                     } else {
 
                         var duration = slideshow.duration * (revert ? progress : (1-progress));
 
-                        Transition.start(slideshow.$current[0], {transform:`translate3d(${percent * -100 * dir}%, 0, 0)`}, duration);
-                        Transition.start(slideshow.$next[0], {transform:`translate3d(${(1-percent) * 100 * dir}%, 0, 0)`}, duration).then(() => {
+                        Transition.start(current[0], {transform:`translate3d(${percent * -100 * dir}%, 0, 0)`}, duration);
+                        Transition.start(next[0], {transform:`translate3d(${(1-percent) * 100 * dir}%, 0, 0)`}, duration).then(() => {
                             animation.finish(revert);
                         });
                     }
@@ -429,8 +451,8 @@ function plugin(UIkit) {
 
         fade: (slideshow, dir) => {
 
-            slideshow.$current.css('opacity', '1');
-            slideshow.$next.css('opacity', '0');
+            var current = slideshow.$current.css('opacity', '1');
+            var next = slideshow.$next.css('opacity', '0');
 
             var progress = 0;
             var animation = {
@@ -438,8 +460,8 @@ function plugin(UIkit) {
                 finish: (revert) => {
                     Transition.stop(slideshow.$current[0]);
                     Transition.stop(slideshow.$next[0]);
-                    slideshow.$current.css('opacity', '');
-                    slideshow.$next.css('opacity', '');
+                    current.css('opacity', '');
+                    next.css('opacity', '');
                     slideshow.$animationEnd(revert);
                 },
 
@@ -448,14 +470,14 @@ function plugin(UIkit) {
                     percent = parseFloat(percent == undefined ? 1 : percent);
 
                     if (percent < 1 && !revert) {
-                        slideshow.$current.css({opacity:`${1-percent}`});
-                        slideshow.$next.css({opacity:`${percent}`});
+                        current.css({opacity:`${1-percent}`});
+                        next.css({opacity:`${percent}`});
                     } else {
 
                         var duration = slideshow.duration * (revert ? progress : (1-progress));
 
-                        Transition.start(slideshow.$current[0], {opacity:`${1-percent}`, duration});
-                        Transition.start(slideshow.$next[0], {opacity:`${percent}`}, duration).then(() => {
+                        Transition.start(current[0], {opacity:`${1-percent}`, duration});
+                        Transition.start(next[0], {opacity:`${percent}`}, duration).then(() => {
                             animation.finish(revert);
                         });
                     }
@@ -469,14 +491,14 @@ function plugin(UIkit) {
 
         scale: (slideshow, dir) => {
 
-            slideshow.$current.css('transform', 'scale(1)');
+            var current = slideshow.$current.css('transform', 'scale(1)');
 
             var progress = 0;
             var animation = {
 
                 finish: (revert) => {
                     Transition.stop(slideshow.$current[0]);
-                    slideshow.$current.css({transform: '', 'opacity': ''});
+                    current.css({transform: '', 'opacity': ''});
                     slideshow.$animationEnd(revert);
                 },
 
@@ -485,12 +507,12 @@ function plugin(UIkit) {
                     percent = parseFloat(percent == undefined ? 1 : percent);
 
                     if (percent < 1 && !revert) {
-                        slideshow.$current.css({opacity:`${1-percent}`, transform: `scale(${1+percent})`});
+                        current.css({opacity:`${1-percent}`, transform: `scale(${1+percent})`});
                     } else {
 
                         var duration = slideshow.duration * (revert ? progress : (1-progress));
 
-                        Transition.start(slideshow.$current[0], {opacity:`${1-percent}`, transform: `scale(${revert ? 1:2})`}, duration).then(() => {
+                        Transition.start(current[0], {opacity:`${1-percent}`, transform: `scale(${revert ? 1:2})`}, duration).then(() => {
                             animation.finish(revert);
                         });
                     }
@@ -504,8 +526,9 @@ function plugin(UIkit) {
 
         swipe: (slideshow, dir) => {
 
-            slideshow.$current.css('transform', 'translateX(0) scale(0)');
-            slideshow.$next.css({transform: `translateX(${dir * 100}%) scale(1.0)`, zIndex:3});
+            var current = slideshow.$current.css('transform', 'translate3d(0,0,0)');
+            var next = slideshow.$next.css({transform: `translateX(${dir * 100}%) scale(1.0)`, zIndex:3});
+            var content = slideshow.$current.data('content').css('transform', 'translate3d(0,0,0) scale(1)');
 
             var progress = 0;
             var animation = {
@@ -513,8 +536,9 @@ function plugin(UIkit) {
                 finish: (revert) => {
                     Transition.stop(slideshow.$current[0]);
                     Transition.stop(slideshow.$next[0]);
-                    slideshow.$current.css('transform', '');
-                    slideshow.$next.css({transform: '', zIndex:''});
+                    current.css('transform', '');
+                    content.css('transform', '');
+                    next.css({transform: '', zIndex:''});
                     slideshow.$animationEnd(revert);
                 },
 
@@ -523,14 +547,16 @@ function plugin(UIkit) {
                     percent = parseFloat(percent == undefined ? 1 : percent);
 
                     if (percent < 1 && !revert) {
-                        slideshow.$current.css({transform:`translate3d(${(.4 * percent) * -100 * dir}%, 0, 0) scale(${1-(.2*percent)})`});
-                        slideshow.$next.css({transform:`translate3d(${(1-percent) * 100 * dir}%, 0, 0)`});
+                        current.css({transform:`translate3d(${(.4 * percent) * -100 * dir}%, 0, 0)`});
+                        next.css({transform:`translate3d(${(1-percent) * 100 * dir}%, 0, 0)`});
+                        content.css({transform:`translate3d(0,${(.1 * percent) * 100}%, 0) scale(${1-(.4*percent)})`});
                     } else {
 
                         var duration = slideshow.duration * (revert ? progress : (1-progress));
 
-                        Transition.start(slideshow.$current[0], {transform:`translate3d(${(.4 * percent) * -100 * dir}%, 0, 0) scale(${revert ? 1:.8})`}, duration);
-                        Transition.start(slideshow.$next[0], {transform:`translate3d(${(1-percent) * 100 * dir}%, 0, 0)`}, duration).then(() => {
+                        Transition.start(current[0], {transform:`translate3d(${(.4 * percent) * -100 * dir}%, 0, 0)`}, duration);
+                        Transition.start(content[0], {transform:`translate3d(0, ${(.1 * percent) * 100}%, 0) scale(${revert ? 1:.4})`}, duration);
+                        Transition.start(next[0], {transform:`translate3d(${(1-percent) * 100 * dir}%, 0, 0)`}, duration).then(() => {
                             animation.finish(revert);
                         });
                     }
