@@ -4149,12 +4149,12 @@ var Margin = function (UIkit) {
 
                         var leftDim = row[0].getBoundingClientRect();
 
-                        if (dim.top >= leftDim.bottom) {
+                        if (dim.top >= Math.floor(leftDim.bottom)) {
                             rows.push([el]);
                             break;
                         }
 
-                        if (dim.bottom > leftDim.top) {
+                        if (Math.floor(dim.bottom) > leftDim.top) {
 
                             this$1.stacks = false;
 
@@ -4681,9 +4681,9 @@ var Offcanvas = function (UIkit) {
                 handler: function handler(ref) {
                     var target = ref.target;
 
-                    var link = $__default(target).closest('a[href^=#]');
+                    var link = $__default(target).closest('a[href^=#]'), href = link.attr('href');
 
-                    if (link.length && this.content.find(link.attr('href')).length) {
+                    if (href.length > 1 && this.content.find(href).length) {
                         scroll = null;
                         this.hide();
                     }
@@ -6588,16 +6588,20 @@ function plugin$1(UIkit) {
                     var type = item.type;
                     var matches;
 
+                    if (!source) {
+                        return;
+                    }
+
                     // Image
-                    if (type === 'image' || source && source.match(/\.(jp(e)?g|png|gif|svg)$/i)) {
+                    if (type === 'image' || source.match(/\.(jp(e)?g|png|gif|svg)$/i)) {
 
                         getImage(source).then(
-                            function (img) { return this$1.setItem(item, ("<img width=\"" + (img.width) + "\" height=\"" + (img.height) + "\" src =\"" + source + "\">")); },
+                            function (img) { return this$1.setItem(item, ("<img width=\"" + (img.width) + "\" height=\"" + (img.height) + "\" src=\"" + source + "\">")); },
                             function () { return this$1.setError(item); }
                         );
 
                     // Video
-                    } else if (type === 'video' || source && source.match(/\.(mp4|webm|ogv)$/i)) {
+                    } else if (type === 'video' || source.match(/\.(mp4|webm|ogv)$/i)) {
 
                         var video = $$$1('<video controls playsinline uk-video></video>')
                             .on('loadedmetadata', function () { return this$1.setItem(item, video.attr({width: video[0].videoWidth, height: video[0].videoHeight})); })
