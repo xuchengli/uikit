@@ -4134,7 +4134,9 @@ ul.uk-nav-sub {
  * Dropbar modifier
  */
 .uk-navbar-dropdown-dropbar {
-  margin-bottom: 30px;
+  top: 0 !important;
+  margin-top: 0;
+  margin-bottom: 0;
   box-shadow: none;
 }
 /* Dropdown Nav
@@ -7864,7 +7866,8 @@ td.uk-text-break {
  * 2. Create position context
  * 3. Prevent content overflow
  * 4. Behave like most inline-block elements
- * 5. Clip child elements
+ * 5. Fix 1px glitch when combined with overlays and transitions in Webkit
+ * 6. Clip child elements
  */
 [class*='uk-inline'] {
   /* 1 */
@@ -7875,9 +7878,11 @@ td.uk-text-break {
   max-width: 100%;
   /* 4 */
   vertical-align: middle;
+  /* 5 */
+  -webkit-transform: translateZ(0);
 }
 .uk-inline-clip {
-  /* 5 */
+  /* 6 */
   overflow: hidden;
 }
 /* Height

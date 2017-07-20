@@ -1,4 +1,4 @@
-/*! UIkit 3.0.0-beta.25 | http://www.getuikit.com | (c) 2014 - 2017 YOOtheme | MIT License */
+/*! UIkit 3.0.0-beta.25-0.1 | http://www.getuikit.com | (c) 2014 - 2017 YOOtheme | MIT License */
 
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery')) :
@@ -1162,7 +1162,7 @@ function position$$1(element, target, elAttach, targetAttach, elOffset, targetOf
         });
     }
 
-    offset$$1(element, {left: position$$1.left, top: position$$1.top});
+    offset$$1(element, position$$1);
 
     return flipped;
 }
@@ -1902,7 +1902,7 @@ var stateAPI = function (UIkit) {
 
 
         this._computeds = {};
-        assign$$1(this.$props, props || this._getProps());
+        assign$$1(this.$props, props || getProps(this.$options, this.$name));
 
         var exclude = [this.$options.computed, this.$options.methods];
         for (var key in this$1.$props) {
@@ -1950,7 +1950,7 @@ var stateAPI = function (UIkit) {
 
         this._observer = new Observer(function () {
 
-            var data = this$1._getProps();
+            var data = getProps(this$1.$options, this$1.$name);
             if (attrs.some(function (key) { return !equals(data[key], this$1.$props[key]); })) {
                 this$1.$reset(data);
             }
@@ -1960,15 +1960,13 @@ var stateAPI = function (UIkit) {
         this._observer.observe(el, {attributes: true, attributeFilter: attrs.concat([this.$name, ("data-" + (this.$name))])});
     };
 
-    UIkit.prototype._getProps = function () {
+    function getProps(opts, name) {
 
         var data = {};
-        var ref = this.$options;
-        var args = ref.args; if ( args === void 0 ) args = [];
-        var props = ref.props; if ( props === void 0 ) props = {};
-        var el = ref.el;
-        var options = getData$$1(el, this.$name),
-            key, prop;
+        var args = opts.args; if ( args === void 0 ) args = [];
+        var props = opts.props; if ( props === void 0 ) props = {};
+        var el = opts.el;
+        var key, prop;
 
         if (!props) {
             return data;
@@ -1988,34 +1986,9 @@ var stateAPI = function (UIkit) {
             }
         }
 
-        if (!options) {
-            return data;
-        }
+        var options = parseOptions(getData$$1(el, name), args);
 
-        if (options[0] === '{') {
-            try {
-                options = JSON.parse(options);
-            } catch (e) {
-                console.warn("Invalid JSON.");
-                options = {};
-            }
-        } else if (args.length && !~options.indexOf(':')) {
-            options = (( obj = {}, obj[args[0]] = options, obj ));
-            var obj;
-        } else {
-            var tmp = {};
-            options.split(';').forEach(function (option) {
-                var ref = option.split(/:(.+)/);
-                var key = ref[0];
-                var value = ref[1];
-                if (key && value) {
-                    tmp[key.trim()] = value.trim();
-                }
-            });
-            options = tmp;
-        }
-
-        for (key in options || {}) {
+        for (key in options) {
             prop = camelize$$1(key);
             if (props[prop] !== undefined) {
                 data[prop] = coerce$$1(props[prop], options[key], el);
@@ -2023,7 +1996,36 @@ var stateAPI = function (UIkit) {
         }
 
         return data;
-    };
+    }
+
+    function parseOptions(options, args) {
+        if ( args === void 0 ) args = [];
+
+
+        try {
+
+            return !options
+                ? {}
+                : options[0] === '{'
+                    ? JSON.parse(options)
+                    : args.length && !~options.indexOf(':')
+                        ? (( obj = {}, obj[args[0]] = options, obj ))
+                        : options.split(';').reduce(function (options, option) {
+                            var ref = option.split(/:(.+)/);
+                            var key = ref[0];
+                            var value = ref[1];
+                            if (key && value) {
+                                options[key.trim()] = value.trim();
+                            }
+                            return options;
+                        }, {});
+            var obj;
+
+        } catch (e) {
+            return {};
+        }
+
+    }
 
     function registerComputed(component, key, cb) {
         Object.defineProperty(component, key, {
@@ -2090,7 +2092,7 @@ var stateAPI = function (UIkit) {
     }
 
     function selfFilter(handler, context) {
-        return function selfHandler (e) {
+        return function selfHandler(e) {
             if (e.target === e.currentTarget) {
                 return handler.call(context, e)
             }
@@ -2318,7 +2320,7 @@ var classAPI = function (UIkit) {
     function getArgs(args, el) {
 
         isString$$1(args[0]) && args.unshift(el);
-        args[0] = toNode$$1(args[0]).classList;
+        args[0] = (toNode$$1(args[0]) || {}).classList;
 
         args.forEach(function (arg, i) { return i > 0 && isString$$1(arg) && ~arg.indexOf(' ') && Array.prototype.splice.apply(args, [i, 1].concat(args[i].split(' '))); }
         );
@@ -4674,10 +4676,6 @@ var Offcanvas = function (UIkit) {
                     return this.panel;
                 },
 
-                filter: function filter() {
-                    return this.overlay;
-                },
-
                 handler: function handler(ref) {
                     var target = ref.target;
 
@@ -6045,7 +6043,7 @@ var core = function (UIkit) {
 
 };
 
-UIkit$2.version = '3.0.0-beta.25';
+UIkit$2.version = '3.0.0-beta.25-0.1';
 
 mixin(UIkit$2);
 core(UIkit$2);
@@ -6202,11 +6200,579 @@ if (!true && typeof window !== 'undefined' && window.UIkit) {
     window.UIkit.use(plugin);
 }
 
+function plugin$2(UIkit) {
+
+    if (plugin$2.installed) {
+        return;
+    }
+
+    var ref = UIkit.util;
+    var $$$1 = ref.$;
+    var doc = ref.doc;
+    var fastdom = ref.fastdom;
+    var getIndex = ref.getIndex;
+    var noop = ref.noop;
+    var on = ref.on;
+    var off = ref.off;
+    var pointerDown = ref.pointerDown;
+    var pointerMove = ref.pointerMove;
+    var pointerUp = ref.pointerUp;
+    var preventClick = ref.preventClick;
+    var promise = ref.promise;
+    var requestAnimationFrame = ref.requestAnimationFrame;
+    var Transition = ref.Transition;
+
+    UIkit.mixin.slideshow = {
+
+        attrs: true,
+
+        props: {
+            autoplay: Number,
+            animation: String,
+            transition: String,
+            duration: Number
+        },
+
+        defaults: {
+            autoplay: 0,
+            animation: 'slide',
+            transition: 'linear',
+            duration: 400,
+            index: 0,
+            stack: [],
+            threshold: 10,
+            percent: 0,
+            clsActive: 'uk-active'
+        },
+
+        computed: {
+
+            slides: function slides() {
+                return this.list.children(("." + (this.clsItem)));
+            },
+
+            forwardDuration: function forwardDuration() {
+                return this.duration / 4;
+            }
+
+        },
+
+        init: function init() {
+            var this$1 = this;
+
+            ['start', 'move', 'end'].forEach(function (key) {
+                var fn = this$1[key];
+                this$1[key] = function (e) {
+
+                    e = e.originalEvent || e;
+
+                    this$1.prevPos = this$1.pos;
+                    this$1.pos = (e.touches && e.touches[0] || e).pageX;
+
+                    fn(e);
+                };
+            });
+        },
+
+        connected: function connected() {
+            this.startAutoplay();
+        },
+
+        events: [
+
+            {
+
+                name: 'click',
+
+                delegate: function delegate() {
+                    return ("[" + (this.attrItem) + "]");
+                },
+
+                handler: function handler(e) {
+                    e.preventDefault();
+                    this.show($$$1(e.currentTarget).blur().attr(this.attrItem));
+                }
+
+            },
+
+            {
+
+                name: pointerDown,
+
+                delegate: function delegate() {
+                    return ("." + (this.clsItem));
+                },
+
+                handler: 'start'
+            },
+
+            {
+
+                name: pointerDown,
+                handler: 'stopAutoplay'
+            },
+
+            {
+                name: 'mouseenter',
+
+                filter: function filter() {
+                    return this.autoplay;
+                },
+
+                handler: function handler() {
+                    this.isHovering = true;
+                }
+            },
+
+            {
+                name: 'mouseleave',
+
+                filter: function filter() {
+                    return this.autoplay;
+                },
+
+                handler: function handler() {
+                    this.isHovering = false;
+                }
+            } ],
+
+        methods: {
+
+            start: function start(e) {
+
+                if (e.button && e.button !== 0) {
+                    return;
+                }
+
+                var percent = 0;
+                if (this.stack.length) {
+
+                    this.percent = this._animation.percent();
+
+                    var dir = this._animation.dir;
+                    percent = this.percent * dir;
+
+                    this.stack.splice(0, this.stack.length);
+
+                    this._animation.cancel();
+                    this._animation.translate(Math.abs(percent));
+
+                    this.index = this.getIndex(this.index - dir);
+                    this.touching = true;
+                }
+
+                on(doc, pointerMove, this.move, true);
+                on(doc, pointerUp, this.end, true);
+
+                var el = this.slides.eq(this.index);
+
+                this.touch = {
+                    el: el,
+                    start: this.pos + (percent ? el.outerWidth() * percent : 0)
+                };
+
+            },
+
+            move: function move(e) {
+                var this$1 = this;
+
+
+                e.preventDefault();
+
+                var ref = this.touch;
+                var start = ref.start;
+                var el = ref.el;
+
+                if (this.pos === this.prevPos || (!this.touching && Math.abs(start - this.pos) < this.threshold)) {
+                    return;
+                }
+
+                this.touching = true;
+
+                var percent = (this.pos - start) / el.outerWidth();
+
+                if (this.percent === percent) {
+                    return;
+                }
+
+                var changed = trunc(this.percent) !== trunc(percent),
+                    index = this.getIndex(this.index - trunc(percent)),
+                    current = this.slides.eq(index),
+                    dir = percent < 0 ? 1 : -1,
+                    nextIndex = getIndex(percent < 0 ? 'next' : 'previous', this.slides, index),
+                    next = this.slides.eq(nextIndex);
+
+                this.slides.each(function (i, el) { return this$1.$toggleClass(el, this$1.clsActive, i === index || i === nextIndex); });
+
+                if (changed && this._animation) {
+                    this._animation.reset();
+                }
+
+                this._animation = new Transitioner(this.animation, this.transition, current, next, dir, noop);
+                this._animation.translate(Math.abs(percent % 1));
+
+                this.percent = percent;
+
+                UIkit.update(null, current);
+                UIkit.update(null, next);
+            },
+
+            end: function end(e) {
+
+                e.preventDefault();
+
+                off(doc, pointerMove, this.move, true);
+                off(doc, pointerUp, this.end, true);
+
+                if (this.touching) {
+
+                    var percent = this.percent;
+
+                    this.percent = Math.abs(this.percent) % 1;
+                    this.index = this.getIndex(this.index - trunc(percent));
+
+                    if (this.percent < 0.2) {
+                        this.index = this.getIndex(percent > 0 ? 'previous' : 'next');
+                        this.percent = 1 - this.percent;
+                        percent *= -1;
+                    }
+
+                    this.show(percent > 0 ? 'previous': 'next', true);
+
+                    preventClick();
+
+                }
+
+                this.pos
+                    = this.prevPos
+                    = this.touch
+                    = this.touching
+                    = this.percent
+                    = null;
+
+            },
+
+            show: function show(index, force) {
+                var this$1 = this;
+                if ( force === void 0 ) force = false;
+
+
+                if (!force && this.touch) {
+                    return;
+                }
+
+                this.stack[force ? 'unshift' : 'push'](index);
+
+                if (!force && this.stack.length > 1) {
+
+                    if (this.stack.length === 2) {
+                        this._animation.forward(this.forwardDuration);
+                    }
+
+                    return;
+                }
+
+                var hasPrev = this.slides.hasClass('uk-active'),
+                    dir = index === 'next'
+                            ? 1
+                            : index === 'previous'
+                                ? -1
+                                : index < this.index
+                                    ? -1
+                                    : 1;
+
+                index = this.getIndex(index);
+
+                if (hasPrev && index === this.index) {
+                    this.stack[force ? 'shift' : 'pop']();
+                    return;
+                }
+
+                var prev = hasPrev && this.slides.eq(this.index),
+                    next = this.slides.eq(index);
+
+                this.$el.trigger('beforeitemshow', [this, next]);
+                prev && this.$el.trigger('beforeitemhide', [this, prev]);
+
+                this.index = index;
+
+                this.$addClass(next, this.clsActive);
+
+                this._animation = new Transitioner(!prev ? 'scale' : this.animation, this.transition, prev || next, next, dir, function () {
+
+                    prev && this$1.$removeClass(prev, this$1.clsActive);
+
+                    this$1.stack.shift();
+                    if (this$1.stack.length) {
+                        requestAnimationFrame(function () { return this$1.show(this$1.stack.shift(), true); });
+                    } else {
+                        this$1._animation = null;
+                    }
+
+                    this$1.$el.trigger('itemshown', [this$1, next]);
+                    UIkit.update(null, next);
+
+                    if (prev) {
+                        this$1.$el.trigger('itemhidden', [this$1, prev]);
+                        UIkit.update(null, prev);
+                    }
+
+                });
+
+                this._animation.show(this.stack.length > 1 ? this.forwardDuration : this.duration, this.percent);
+
+                this.$el.trigger('itemshow', [this, next]);
+
+                if (prev) {
+                    this.$el.trigger('itemhide', [this, prev]);
+                    UIkit.update(null, prev);
+                }
+
+                UIkit.update(null, next);
+                fastdom.flush(); // iOS 10+ will honor the video.play only if called from a gesture handler
+            },
+
+            getIndex: function getIndex$1(index) {
+                if ( index === void 0 ) index = this.index;
+
+                return getIndex(index, this.slides, this.index);
+            },
+
+            startAutoplay: function startAutoplay() {
+                var this$1 = this;
+
+
+                this.stopAutoplay();
+
+                if (this.autoplay) {
+                    this.interval = setInterval(function () {!this$1.isHovering && this$1.show('next');}, this.autoplay);
+                }
+
+            },
+
+            stopAutoplay: function stopAutoplay() {
+                if (this.interval) {
+                    clearInterval(this.interval);
+                }
+            }
+
+        }
+
+    };
+
+    var diff = 0.2;
+    var Animations = {
+
+        fade: {
+
+            show: function show() {
+                return [
+                    {opacity: 0},
+                    {opacity: 1}
+                ];
+            },
+
+            percent: function percent(current) {
+                return 1 - current.css('opacity');
+            },
+
+            translate: function translate(percent) {
+                return [
+                    {opacity: 1 - percent},
+                    {opacity: percent}
+                ];
+            }
+
+        },
+
+        slide: {
+
+            show: function show(dir) {
+                return [
+                    {transform: ("translate3d(" + (dir * -100) + "%, 0, 0)")},
+                    {transform: 'translate3d(0, 0, 0)'}
+                ];
+            },
+
+            percent: function percent(current) {
+                return Math.abs(current.css('transform').split(',')[4] / current.outerWidth());
+            },
+
+            translate: function translate(percent, dir) {
+                return [
+                    {transform: ("translate3d(" + (dir * -100 * percent) + "%, 0, 0)")},
+                    {transform: ("translate3d(" + (dir * 100 * (1 - percent)) + "%, 0, 0)")}
+                ];
+            }
+
+        },
+
+        scale: {
+
+            show: function show() {
+                return [
+                    {opacity: 0, transform: ("scale3d(" + (1 - diff) + ", " + (1 - diff) + ", 1)")},
+                    {opacity: 1, transform: 'scale3d(1, 1, 1)'}
+                ];
+            },
+
+            percent: function percent(current) {
+                return 1 - current.css('opacity');
+            },
+
+            translate: function translate(percent) {
+                var scale1 = 1 - diff * percent,
+                    scale2 = 1 - diff + diff * percent;
+
+                return [
+                    {opacity: 1 - percent, transform: ("scale3d(" + scale1 + ", " + scale1 + ", 1)")},
+                    {opacity: percent, transform: ("scale3d(" + scale2 + ", " + scale2 + ", 1)")}
+                ];
+            }
+
+        },
+
+        swipe: {
+
+            show: function show(dir) {
+
+                if (dir < 0) {
+                    return [
+                        {opacity: 1, transform: "translate3d(100%, 0, 0)", zIndex: 0},
+                        {opacity: 1, transform: "scale3d(1, 1, 1) translate3d(0, 0, 0)", zIndex: -1} ];
+                } else {
+                    return [
+                        {opacity: 0.3, transform: ("scale3d(" + (1 - diff) + ", " + (1 - diff) + ", 1) translate3d(-20%, 0, 0)"), zIndex: -1},
+                        {opacity: 1, transform: 'translate3d(0, 0, 0)', zIndex: 0}
+                    ];
+                }
+
+
+            },
+
+            percent: function percent(current, next, dir) {
+
+                var el = dir < 0 ? current : next,
+                    percent = Math.abs(el.css('transform').split(',')[4] / el.outerWidth());
+
+                return dir < 0 ? percent : 1 - percent;
+            },
+
+            translate: function translate(percent, dir) {
+                var scale;
+
+                if (dir < 0) {
+                    scale = 1 - diff * (1 - percent);
+                    return [
+                        {opacity: 1, transform: ("translate3d(" + (100 * percent) + "%, 0, 0)"), zIndex: 0},
+                        {opacity: 0.3 + 0.7 * percent, transform: ("scale3d(" + scale + ", " + scale + ", 1) translate3d(" + (-20 * (1 - percent)) + "%, 0, 0)"), zIndex: -1} ];
+                } else {
+                    scale = 1 - diff * percent;
+                    return [
+                        {opacity: 1 - 0.7 * percent, transform: ("scale3d(" + scale + ", " + scale + ", 1) translate3d(" + (-20 * percent) + "%, 0, 0)"), zIndex: -1},
+                        {opacity: 1, transform: ("translate3d(" + (100 * (1 - percent)) + "%, 0, 0)"), zIndex: 0}
+                    ];
+                }
+
+            }
+
+        },
+
+    };
+
+    function Transitioner (animation, transition, current, next, dir, cb) {
+
+        animation = animation in Animations ? Animations[animation] : Animations.slide;
+
+        var props = animation.show(dir);
+
+        return {
+
+            dir: dir,
+            current: current,
+            next: next,
+
+            show: function show(duration, percent) {
+                var this$1 = this;
+                if ( percent === void 0 ) percent = 0;
+
+
+                duration -= Math.round(duration * percent);
+
+                this.translate(percent);
+
+                return promise.all([
+                    Transition.start(current, props[0], duration, transition),
+                    Transition.start(next, props[1], duration, transition)
+                ]).then(function () {
+                    this$1.reset();
+                    cb();
+                }, noop);
+            },
+
+            stop: function stop() {
+                return promise.all([
+                    Transition.stop(next),
+                    Transition.stop(current)
+                ]);
+            },
+
+            cancel: function cancel() {
+                return promise.all([
+                    Transition.cancel(next),
+                    Transition.cancel(current)
+                ]);
+            },
+
+            reset: function reset() {
+                for (var prop in props[0]) {
+                    $$$1([next[0], current[0]]).css(prop, '');
+                }
+            },
+
+            forward: function forward(duration) {
+                var this$1 = this;
+
+
+                var percent = this.percent();
+
+                return promise.all([
+                    Transition.cancel(next),
+                    Transition.cancel(current)
+                ]).then(function () { return this$1.show(duration, percent); });
+
+            },
+
+            translate: function translate(percent) {
+
+                var props = animation.translate(percent, dir);
+                current.css(props[0]);
+                next.css(props[1]);
+
+            },
+
+            percent: function percent() {
+                return animation.percent(current, next, dir);
+            }
+
+        }
+
+    }
+
+    // polyfill for Math.trunc (IE)
+    function trunc(x) {
+        return ~~x;
+    }
+
+}
+
 function plugin$1(UIkit) {
 
     if (plugin$1.installed) {
         return;
     }
+
+    UIkit.use(plugin$2);
 
     var mixin = UIkit.mixin;
     var util = UIkit.util;
@@ -6217,19 +6783,10 @@ function plugin$1(UIkit) {
     var assign = util.assign;
     var doc = util.doc;
     var docElement = util.docElement;
-    var fastdom = util.fastdom;
     var getData = util.getData;
     var getImage = util.getImage;
-    var getIndex = util.getIndex;
-    var noop = util.noop;
-    var on = util.on;
-    var off = util.off;
     var pointerDown = util.pointerDown;
     var pointerMove = util.pointerMove;
-    var pointerUp = util.pointerUp;
-    var preventClick = util.preventClick;
-    var promise = util.promise;
-    var requestAnimationFrame = util.requestAnimationFrame;
     var Transition = util.Transition;
 
     UIkit.component('lightbox', {
@@ -6343,26 +6900,18 @@ function plugin$1(UIkit) {
 
     UIkit.component('lightbox-panel', {
 
-        mixins: [mixin.togglable],
+        mixins: [mixin.togglable, mixin.slideshow],
 
         functional: true,
 
         defaults: {
-            animation: 'slide',
-            transition: 'ease',
-            duration: 400,
-            attrItem: 'uk-lightbox-item',
             preload: 1,
+            delayControls: 3000,
             items: [],
-            index: 0,
+            cls: 'uk-open',
             clsPage: 'uk-lightbox-page',
             clsItem: 'uk-lightbox-item',
-            stack: [],
-            threshold: 15,
-            percent: 0,
-            cls: 'uk-open',
-            clsActive: 'uk-active',
-            delayControls: 3000,
+            attrItem: 'uk-lightbox-item',
             template: "<div class=\"uk-lightbox uk-overflow-hidden\"><ul class=\"uk-lightbox-items\"></ul><div class=\"uk-lightbox-toolbar uk-position-top uk-text-right\"><button class=\"uk-lightbox-toolbar-icon uk-close-large\" type=\"button\" uk-close uk-toggle=\"!.uk-lightbox\"></button></div><a class=\"uk-lightbox-button uk-position-center-left uk-position-medium\" href=\"#\" uk-slidenav-previous uk-lightbox-item=\"previous\"></a><a class=\"uk-lightbox-button uk-position-center-right uk-position-medium\" href=\"#\" uk-slidenav-next uk-lightbox-item=\"next\"></a><div class=\"uk-lightbox-toolbar uk-lightbox-caption uk-position-bottom uk-text-center\"></div></div>"
         },
 
@@ -6370,14 +6919,6 @@ function plugin$1(UIkit) {
 
             container: function container() {
                 return $$$1(this.$props.container === true && UIkit.container || this.$props.container || UIkit.container);
-            },
-
-            slides: function slides() {
-                return this.list.children(("." + (this.clsItem)));
-            },
-
-            forwardDuration: function forwardDuration() {
-                return this.duration / 4;
             }
 
         },
@@ -6395,23 +6936,6 @@ function plugin$1(UIkit) {
 
             this.items.forEach(function (el, i) { return this$1.list.append(("<li class=\"" + (this$1.clsItem) + " item-" + i + "\"></li>")); });
 
-        },
-
-        init: function init() {
-            var this$1 = this;
-
-            ['start', 'move', 'end'].forEach(function (key) {
-                var fn = this$1[key];
-                this$1[key] = function (e) {
-
-                    e = e.originalEvent || e;
-
-                    this$1.prevPos = this$1.pos;
-                    this$1.pos = (e.touches && e.touches[0] || e).pageX;
-
-                    fn(e);
-                };
-            });
         },
 
         events: [
@@ -6450,21 +6974,6 @@ function plugin$1(UIkit) {
                 handler: function handler(e) {
                     e.preventDefault();
                     this.hide();
-                }
-
-            },
-
-            {
-
-                name: 'click',
-
-                delegate: function delegate() {
-                    return ("[" + (this.attrItem) + "]");
-                },
-
-                handler: function handler(e) {
-                    e.preventDefault();
-                    this.show($$$1(e.currentTarget).blur().attr(this.attrItem));
                 }
 
             },
@@ -6567,13 +7076,38 @@ function plugin$1(UIkit) {
 
             {
 
-                name: pointerDown,
+                name: 'beforeitemshow',
 
-                delegate: function delegate() {
-                    return ("." + (this.clsItem));
-                },
+                self: true,
 
-                handler: 'start'
+                handler: function handler() {
+                    if (!this.isToggled()) {
+                        this.toggleNow(this.$el, true);
+                    }
+                }
+
+            },
+
+            {
+
+                name: 'itemshow',
+
+                self: true,
+
+                handler: function handler() {
+                    var this$1 = this;
+
+
+                    var caption = this.getItem().caption;
+                    this.caption.toggle(!!caption).html(caption);
+
+                    for (var i = 0; i <= this.preload; i++) {
+                        this$1.loadItem(this$1.getIndex(this$1.index + i));
+                        this$1.loadItem(this$1.getIndex(this$1.index - i));
+                    }
+
+                }
+
             },
 
             {
@@ -6587,6 +7121,8 @@ function plugin$1(UIkit) {
                     var source = item.source;
                     var type = item.type;
                     var matches;
+
+                    this.setItem(item, '<span uk-spinner></span>');
 
                     if (!source) {
                         return;
@@ -6656,7 +7192,7 @@ function plugin$1(UIkit) {
 
                     }
 
-                    return true
+                    return true;
 
                 }
 
@@ -6666,185 +7202,8 @@ function plugin$1(UIkit) {
 
         methods: {
 
-            start: function start(e) {
-                var this$1 = this;
-
-
-                if (e.button && e.button !== 0) {
-                    return;
-                }
-
-                if (this.stack.length) {
-                    this.stack.splice(1);
-                    this._animation && this._animation.stop().then(function () { return this$1.start(e); });
-                    return;
-                }
-
-                on(doc, pointerMove, this.move, true);
-                on(doc, pointerUp, this.end, true);
-
-                this.touch = {
-                    start: this.pos,
-                    current: this.slides.eq(this.index),
-                    prev: this.slides.eq(this.getIndex('previous')),
-                    next: this.slides.eq(this.getIndex('next'))
-                };
-
-            },
-
-            move: function move(e) {
-
-                e.preventDefault();
-
-                var ref = this.touch;
-                var start = ref.start;
-                var current = ref.current;
-                var next = ref.next;
-                var prev = ref.prev;
-
-                if (this.pos === this.prevPos || (!this.touching && Math.abs(start - this.pos) < this.threshold)) {
-                    return;
-                }
-
-                this.touching = true;
-
-                var percent = (this.pos - start) / current.outerWidth();
-
-                if (this.percent === percent) {
-                    return;
-                }
-
-                this.percent = percent;
-
-                this.$toggleClass(next, this.clsActive, percent < 0);
-                this.$toggleClass(prev, this.clsActive, percent >= 0 || prev.is(next));
-
-                new Translator(
-                    this.animation,
-                    this.transition,
-                    current,
-                    percent >= 0 ? prev : next,
-                    percent < 0 ? 1 : -1,
-                    noop
-                ).translate(Math.abs(percent));
-
-            },
-
-            end: function end(e) {
-
-                e.preventDefault();
-
-                off(doc, pointerMove, this.move, true);
-                off(doc, pointerUp, this.end, true);
-
-                if (this.touching) {
-
-                    var percent = this.percent;
-
-                    this.percent = Math.abs(this.percent);
-
-                    if (this.percent < 0.2) {
-                        this.index = this.getIndex(percent > 0 ? 'previous' : 'next');
-                        this.percent = 1 - this.percent;
-                        percent *= -1;
-                    }
-
-                    this.show(percent > 0 ? 'previous': 'next', true);
-
-                    preventClick();
-
-                }
-
-                this.pos
-                    = this.prevPos
-                    = this.touch
-                    = this.touching
-                    = this.percent
-                    = null;
-
-            },
-
             toggle: function toggle() {
                 return this.isToggled() ? this.hide() : this.show();
-            },
-
-            show: function show(index, force) {
-                var this$1 = this;
-                if ( force === void 0 ) force = false;
-
-
-                var hasPrev = this.items.length > 1;
-                if (!this.isToggled()) {
-                    this.toggleNow(this.$el, true);
-                    hasPrev = false;
-                }
-
-                if (!force && this.touch) {
-                    return;
-                }
-
-                this.stack[force ? 'unshift' : 'push'](index);
-
-                if (!force && this.stack.length > 1) {
-
-                    if (this.stack.length === 2) {
-                        this._animation.forward(this.forwardDuration);
-                    }
-
-                    return;
-                }
-
-                var dir = index === 'next' ? 1 : -1;
-
-                index = this.getIndex(index);
-
-                if (hasPrev && index === this.index) {
-                    this.stack[force ? 'shift' : 'pop']();
-                    return;
-                }
-
-                var prev = hasPrev && this.slides.eq(this.index),
-                    next = this.slides.eq(index);
-
-                this.index = index;
-
-                this.$addClass(next, this.clsActive);
-
-                var caption = this.getItem(index).caption;
-                this.caption.toggle(!!caption).html(caption);
-
-                this._animation = new Translator(!prev ? 'scale' : this.animation, this.transition, prev || next, next, dir, function () {
-
-                    prev && this$1.$removeClass(prev, this$1.clsActive);
-
-                    this$1.stack.shift();
-                    if (this$1.stack.length) {
-                        requestAnimationFrame(function () { return this$1.show(this$1.stack.shift(), true); });
-                    } else {
-                        this$1._animation = null;
-                    }
-
-                    this$1.$el.trigger('itemshown', [this$1, next]);
-
-                    if (prev) {
-                        this$1.$el.trigger('itemhidden', [this$1, prev]);
-                        UIkit.update(null, prev);
-                    }
-
-                });
-
-                this._animation.show(this.stack.length > 1 ? this.forwardDuration : this.duration, this.percent);
-
-                for (var i = 0; i <= this.preload; i++) {
-                    this$1.loadItem(this$1.getIndex(index + i));
-                    this$1.loadItem(this$1.getIndex(index - i));
-                }
-
-                this.$el.trigger('itemshow', [this, next]);
-                prev && this.$el.trigger('itemhide', [this, prev]);
-
-                UIkit.update(null, next);
-                fastdom.flush(); // iOS 10+ will honor the video.play only if called from a gesture handler
             },
 
             hide: function hide() {
@@ -6873,8 +7232,6 @@ function plugin$1(UIkit) {
                     return;
                 }
 
-                this.setItem(item, '<span uk-spinner></span>');
-
                 if (!$trigger(this.$el, 'itemload', [item], true).result) {
                     this.setError(item);
                 }
@@ -6883,7 +7240,7 @@ function plugin$1(UIkit) {
             getItem: function getItem(index) {
                 if ( index === void 0 ) index = this.index;
 
-                return this.items[index] || {source: '', caption: '', type: ''};
+                return this.items[index] || {};
             },
 
             setItem: function setItem(item, content) {
@@ -6895,12 +7252,6 @@ function plugin$1(UIkit) {
 
             setError: function setError(item) {
                 this.setItem(item, '<span uk-icon="icon: bolt; ratio: 2"></span>');
-            },
-
-            getIndex: function getIndex$1(index) {
-                if ( index === void 0 ) index = this.index;
-
-                return getIndex(index, this.items, this.index);
             },
 
             showControls: function showControls() {
@@ -6948,139 +7299,6 @@ function plugin$1(UIkit) {
         el.each(function (i) { return Animation[dir](el.eq(i).attr('hidden', false), animation).then(function () { dir === 'out' && el.eq(i).attr('hidden', true);}); });
     }
 
-    function Translator (animation, transition, current, next, dir, cb) {
-
-        animation = animation in Animations ? Animations[animation] : Animations.slide;
-
-        return {
-
-            show: function show(duration, percent) {
-                if ( percent === void 0 ) percent = 0;
-
-
-                duration -= Math.round(duration * percent);
-
-                var props = animation.show(dir);
-
-                this.translate(percent);
-
-                return promise.all([
-                    Transition.start(current, props[0], duration, transition),
-                    Transition.start(next, props[1], duration, transition)
-                ]).then(function () {
-                    for (var prop in props[0]) {
-                        $$$1([next[0], current[0]]).css(prop, '');
-                    }
-                    cb();
-                }, noop);
-            },
-
-            stop: function stop() {
-                return promise.all([
-                    Transition.stop(next),
-                    Transition.stop(current)
-                ])
-            },
-
-            forward: function forward(duration) {
-                var this$1 = this;
-
-
-                var percent = animation.percent(current);
-
-                return promise.all([
-                    Transition.cancel(next),
-                    Transition.cancel(current)
-                ]).then(function () { return this$1.show(duration, percent); });
-
-            },
-
-            translate: function translate(percent) {
-
-                var props = animation.translate(percent, dir);
-                current.css(props[0]);
-                next.css(props[1]);
-
-            }
-
-        }
-
-    }
-
-    var diff = 0.2;
-    var Animations = {
-
-        fade: {
-
-            show: function show() {
-                return [
-                    {opacity: 0},
-                    {opacity: 1}
-                ];
-            },
-
-            percent: function percent(current) {
-                return 1 - current.css('opacity');
-            },
-
-            translate: function translate(percent) {
-                return [
-                    {opacity: 1 - percent},
-                    {opacity: percent}
-                ];
-            }
-
-        },
-
-        slide: {
-
-            show: function show(dir) {
-                return [
-                    {transform: ("translate3d(" + (dir * -100) + "%, 0, 0)")},
-                    {transform: 'translate3d(0, 0, 0)'}
-                ];
-            },
-
-            percent: function percent(current) {
-                return Math.abs(current.css('transform').split(',')[4] / current.outerWidth());
-            },
-
-            translate: function translate(percent, dir) {
-                return [
-                    {transform: ("translate3d(" + (dir * -100 * percent) + "%, 0, 0)")},
-                    {transform: ("translate3d(" + (dir * 100 * (1 - percent)) + "%, 0, 0)")}
-                ];
-            }
-
-        },
-
-        scale: {
-
-            show: function show() {
-                return [
-                    {opacity: 0, transform: ("scale3d(" + (1 - diff) + ", " + (1 - diff) + ", 1)")},
-                    {opacity: 1, transform: 'scale3d(1, 1, 1)'}
-                ];
-            },
-
-            percent: function percent(current) {
-                return 1 - current.css('opacity');
-            },
-
-            translate: function translate(percent) {
-                var scale1 = 1 - diff * percent,
-                    scale2 = 1 - diff + diff * percent;
-
-                return [
-                    {opacity: 1 - percent, transform: ("scale3d(" + scale1 + ", " + scale1 + ", 1)")},
-                    {opacity: percent, transform: ("scale3d(" + scale2 + ", " + scale2 + ", 1)")}
-                ];
-            }
-
-        }
-
-    };
-
     function getIframe(src, width, height) {
         return ("<iframe src=\"" + src + "\" width=\"" + width + "\" height=\"" + height + "\" style=\"max-width: 100%; box-sizing: border-box;\" uk-video uk-responsive></iframe>");
     }
@@ -7091,9 +7309,9 @@ if (!true && typeof window !== 'undefined' && window.UIkit) {
     window.UIkit.use(plugin$1);
 }
 
-function plugin$2(UIkit) {
+function plugin$3(UIkit) {
 
-    if (plugin$2.installed) {
+    if (plugin$3.installed) {
         return;
     }
 
@@ -7214,12 +7432,12 @@ function plugin$2(UIkit) {
 }
 
 if (!true && typeof window !== 'undefined' && window.UIkit) {
-    window.UIkit.use(plugin$2);
+    window.UIkit.use(plugin$3);
 }
 
-function plugin$3(UIkit) {
+function plugin$4(UIkit) {
 
-    if (plugin$3.installed) {
+    if (plugin$4.installed) {
         return;
     }
 
@@ -7563,12 +7781,12 @@ function plugin$3(UIkit) {
 }
 
 if (!true && typeof window !== 'undefined' && window.UIkit) {
-    window.UIkit.use(plugin$3);
+    window.UIkit.use(plugin$4);
 }
 
-function plugin$4(UIkit) {
+function plugin$5(UIkit) {
 
-    if (plugin$4.installed) {
+    if (plugin$5.installed) {
         return;
     }
 
@@ -7709,12 +7927,12 @@ function plugin$4(UIkit) {
 }
 
 if (!true && typeof window !== 'undefined' && window.UIkit) {
-    window.UIkit.use(plugin$4);
+    window.UIkit.use(plugin$5);
 }
 
-function plugin$5(UIkit) {
+function plugin$6(UIkit) {
 
-    if (plugin$5.installed) {
+    if (plugin$6.installed) {
         return;
     }
 
@@ -7923,12 +8141,12 @@ function plugin$5(UIkit) {
 }
 
 if (!true && typeof window !== 'undefined' && window.UIkit) {
-    window.UIkit.use(plugin$5);
+    window.UIkit.use(plugin$6);
 }
 
-function plugin$6(UIkit) {
+function plugin$7(UIkit) {
 
-    if (plugin$6.installed) {
+    if (plugin$7.installed) {
         return;
     }
 
@@ -8046,35 +8264,34 @@ function plugin$6(UIkit) {
 
 
 if (!true && typeof window !== 'undefined' && window.UIkit) {
-    window.UIkit.use(plugin$6);
+    window.UIkit.use(plugin$7);
 }
 
-function plugin$7(UIkit) {
+function plugin$8(UIkit) {
 
-    if (plugin$7.installed) {
+    if (plugin$8.installed) {
         return;
     }
 
-    var ref = UIkit.util;
-    var assign = ref.assign;
-    var clamp = ref.clamp;
-    var Dimensions = ref.Dimensions;
-    var getImage = ref.getImage;
-    var isUndefined = ref.isUndefined;
-    var scrolledOver = ref.scrolledOver;
-    var query = ref.query;
+    var mixin = UIkit.mixin;
+    var util = UIkit.util;
+    var assign = util.assign;
+    var clamp = util.clamp;
+    var Dimensions = util.Dimensions;
+    var getImage = util.getImage;
+    var isUndefined = util.isUndefined;
+    var scrolledOver = util.scrolledOver;
+    var query = util.query;
 
     var props = ['x', 'y', 'bgx', 'bgy', 'rotate', 'scale', 'color', 'backgroundColor', 'borderColor', 'opacity', 'blur', 'hue', 'grayscale', 'invert', 'saturate', 'sepia', 'fopacity'];
 
-    UIkit.component('parallax', {
+    mixin.parallax = {
 
         props: props.reduce(function (props, prop) {
             props[prop] = 'list';
             return props;
         }, {
             easing: Number,
-            target: String,
-            viewport: Number,
             media: 'media'
         }),
 
@@ -8083,16 +8300,10 @@ function plugin$7(UIkit) {
             return defaults;
         }, {
             easing: 1,
-            target: false,
-            viewport: 1,
             media: false
         }),
 
         computed: {
-
-            target: function target() {
-                return this.$props.target && query(this.$props.target, this.$el) || this.$el;
-            },
 
             props: function props$1() {
                 var this$1 = this;
@@ -8171,7 +8382,6 @@ function plugin$7(UIkit) {
         },
 
         disconnected: function disconnected() {
-            delete this._prev;
             delete this._image;
         },
 
@@ -8183,7 +8393,6 @@ function plugin$7(UIkit) {
                     var this$1 = this;
 
 
-                    delete this._prev;
                     delete this._computeds.props;
 
                     this._active = !this.media || window.matchMedia(this.media).matches;
@@ -8284,6 +8493,134 @@ function plugin$7(UIkit) {
 
                 events: ['load', 'resize']
 
+            }
+
+        ],
+
+        methods: {
+
+            reset: function reset() {
+                var this$1 = this;
+
+                Object.keys(this.getCss(0)).forEach(function (prop) { return this$1.$el.css(prop, ''); });
+            },
+
+            getCss: function getCss(percent) {
+
+                var translated = false, props = this.props;
+                return Object.keys(props).reduce(function (css, prop) {
+
+                    var values = props[prop],
+                        value = getValue(values, percent);
+
+                    switch (prop) {
+
+                        // transforms
+                        case 'x':
+                        case 'y':
+                            if (translated) {
+                                break;
+                            }
+
+                            var ref = ['x', 'y'].map(function (dir) { return prop === dir
+                                ? value + values.unit
+                                : props[dir]
+                                    ? getValue(props[dir], percent) + props[dir].unit
+                                    : 0; }
+                            );
+                    var x = ref[0];
+                    var y = ref[1];
+
+                            translated = css.transform += " translate3d(" + x + ", " + y + ", 0)";
+                            break;
+                        case 'rotate':
+                            css.transform += " rotate(" + value + "deg)";
+                            break;
+                        case 'scale':
+                            css.transform += " scale(" + value + ")";
+                            break;
+
+                        // bg image
+                        case 'bgy':
+                        case 'bgx':
+                            css[("background-position-" + (prop[2]))] = "calc(" + (values.pos) + " + " + (value + values.unit) + ")";
+                            break;
+
+                        // color
+                        case 'color':
+                        case 'backgroundColor':
+                        case 'borderColor':
+                            css[prop] = "rgba(" + (values.start.map(function (value, i) {
+                                    value = value + percent * (values.end[i] - value);
+                                    return i === 3 ? parseFloat(value) : parseInt(value, 10);
+                                }).join(',')) + ")";
+                            break;
+
+                        // CSS Filter
+                        case 'blur':
+                            css.filter += " blur(" + value + "px)";
+                            break;
+                        case 'hue':
+                            css.filter += " hue-rotate(" + value + "deg)";
+                            break;
+                        case 'fopacity':
+                            css.filter += " opacity(" + value + "%)";
+                            break;
+                        case 'grayscale':
+                        case 'invert':
+                        case 'saturate':
+                        case 'sepia':
+                            css.filter += " " + prop + "(" + value + "%)";
+                            break;
+
+                        default:
+                            css[prop] = value;
+                    }
+
+                    return css;
+
+                }, {transform: '', filter: ''});
+
+            }
+
+        }
+
+    };
+
+    UIkit.component('parallax', {
+
+        mixins: [mixin.parallax],
+
+        props: {
+            target: String,
+            viewport: Number
+        },
+
+        defaults: {
+            target: false,
+            viewport: 1
+        },
+
+        computed: {
+
+            target: function target() {
+                return this.$props.target && query(this.$props.target, this.$el) || this.$el;
+            }
+
+        },
+
+        disconnected: function disconnected() {
+            delete this._prev;
+        },
+
+        update: [
+
+            {
+
+                read: function read() {
+                    delete this._prev;
+                }
+
             },
 
             {
@@ -8296,16 +8633,14 @@ function plugin$7(UIkit) {
                 },
 
                 write: function write() {
-                    var this$1 = this;
-
 
                     if (!this._active) {
-                        Object.keys(getCss(this.props, 0)).forEach(function (prop) { return this$1.$el.css(prop, ''); });
+                        this.reset();
                         return;
                     }
 
                     if (this._prev !== this._percent) {
-                        this.$el.css(getCss(this.props, this._percent));
+                        this.$el.css(this.getCss(this._percent));
                         this._prev = this._percent;
                     }
 
@@ -8313,89 +8648,13 @@ function plugin$7(UIkit) {
 
                 events: ['scroll', 'load', 'resize']
             }
+
         ]
+
     });
 
     function parseColor(color) {
         return color.split(/[(),]/g).slice(1, -1).concat(1).slice(0, 4).map(function (n) { return parseFloat(n); });
-    }
-
-    function getCss(props, percent) {
-
-        var translated = false;
-        return Object.keys(props).reduce(function (css, prop) {
-
-            var values = props[prop],
-                value = getValue(values, percent);
-
-            switch (prop) {
-
-                // transforms
-                case 'x':
-                case 'y':
-                    if (translated) {
-                        break;
-                    }
-
-                    var ref = ['x', 'y'].map(function (dir) { return prop === dir
-                        ? value + values.unit
-                        : props[dir]
-                            ? getValue(props[dir], percent) + props[dir].unit
-                            : 0; }
-                    );
-            var x = ref[0];
-            var y = ref[1];
-
-                    translated = css.transform += " translate3d(" + x + ", " + y + ", 0)";
-                    break;
-                case 'rotate':
-                    css.transform += " rotate(" + value + "deg)";
-                    break;
-                case 'scale':
-                    css.transform += " scale(" + value + ")";
-                    break;
-
-                // bg image
-                case 'bgy':
-                case 'bgx':
-                    css[("background-position-" + (prop[2]))] = "calc(" + (values.pos) + " + " + (value + values.unit) + ")";
-                    break;
-
-                // color
-                case 'color':
-                case 'backgroundColor':
-                case 'borderColor':
-                    css[prop] = "rgba(" + (values.start.map(function (value, i) {
-                            value = value + percent * (values.end[i] - value);
-                            return i === 3 ? parseFloat(value) : parseInt(value, 10);
-                        }).join(',')) + ")";
-                    break;
-
-                // CSS Filter
-                case 'blur':
-                    css.filter += " blur(" + value + "px)";
-                    break;
-                case 'hue':
-                    css.filter += " hue-rotate(" + value + "deg)";
-                    break;
-                case 'fopacity':
-                    css.filter += " opacity(" + value + "%)";
-                    break;
-                case 'grayscale':
-                case 'invert':
-                case 'saturate':
-                case 'sepia':
-                    css.filter += " " + prop + "(" + value + "%)";
-                    break;
-
-                default:
-                    css[prop] = value;
-            }
-
-            return css;
-
-        }, {transform: '', filter: ''});
-
     }
 
     function getValue(prop, percent) {
@@ -8407,17 +8666,17 @@ function plugin$7(UIkit) {
 }
 
 if (!true && typeof window !== 'undefined' && window.UIkit) {
-    window.UIkit.use(plugin$7);
+    window.UIkit.use(plugin$8);
 }
 
 UIkit$2.use(plugin);
 UIkit$2.use(plugin$1);
-UIkit$2.use(plugin$2);
 UIkit$2.use(plugin$3);
 UIkit$2.use(plugin$4);
 UIkit$2.use(plugin$5);
 UIkit$2.use(plugin$6);
 UIkit$2.use(plugin$7);
+UIkit$2.use(plugin$8);
 
 {
     boot(UIkit$2);
