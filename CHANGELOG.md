@@ -4,6 +4,27 @@
 
 ### Added
 
+- Add sticky navbar test
+
+### Fixed
+
+- Add workaround to mitigate the duplicating icons issue
+- Fix issue with multilevel dropdown
+- Fix compatibility issue with Prototype and MooTools
+- Fix Sticky Navbar behaviour
+- Fix Parallax (IE11)
+
+## 3.0.0 beta 27 (July 20, 2017)
+
+### Fixed
+
+- Remove stacking context for `uk-inline`
+- Prevent scrolling in Lightboxes with one slide only
+
+## 3.0.0 beta 26 (July 20, 2017)
+
+### Added
+
 - Add Lightbox component
 - Add Video component
 
@@ -27,7 +48,7 @@
 - Fix event handling in Sortable component
 - Fix grid calculation (Firefox)
 - Fix dropdown margins in the dropbar
-- Fix opening Modal from Offcanvas'
+- Fix opening Modals from Offcanvas'
 
 ## 3.0.0 beta 25 (June 9, 2017)
 

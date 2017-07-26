@@ -1,4 +1,4 @@
-/*! UIkit 3.0.0-beta.25-0.2 | http://www.getuikit.com | (c) 2014 - 2017 YOOtheme | MIT License */
+/*! UIkit 3.0.0-beta.27 | http://www.getuikit.com | (c) 2014 - 2017 YOOtheme | MIT License */
 
 (function (global, factory) {
 	typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory(require('jquery')) :
@@ -71,7 +71,7 @@ function trigger$$1(element, event) {
 function $trigger$$1(element, event, data, local) {
     if ( local === void 0 ) local = false;
 
-    var e = $.Event(event);
+    var e = event instanceof $.Event ? event : $.Event(event);
     $__default(element)[local ? 'triggerHandler' : 'trigger'](e, data);
     return e;
 }
@@ -2490,9 +2490,12 @@ var Togglable = {
                     : this._toggleAnimation
             )(el, show);
 
-            el.trigger(show ? 'show' : 'hide', [this]);
+            var e = $.Event(show ? 'show' : 'hide');
+            e.preventDefault(); // workaround for Prototype and MooTools: it keeps jQuery from calling show or hide on the Element itself
+            $trigger$$1(el, e, [this]);
+
             return def.then(function () {
-                el.trigger(show ? 'shown' : 'hidden', [this$1]);
+                $trigger$$1(el, show ? 'shown' : 'hidden', [this$1]);
                 UIkit$2.update(null, el);
             });
         },
@@ -2545,7 +2548,7 @@ var Togglable = {
                             : Transition$$1.start(el, this$1.hideProps, Math.round(this$1.duration * (height / endHeight)), this$1.transition).then(function () {
                                 this$1._toggle(el, false);
                                 el.css(this$1.initProps);
-                            })).then(resolve);
+                            })).then(resolve, noop$$1);
 
                     }); }
                 );
@@ -2614,6 +2617,10 @@ var Modal = {
 
         transitionDuration: function transitionDuration() {
             return toMs$$1(this.transitionElement.css('transition-duration'));
+        },
+
+        component: function component() {
+            return UIkit$2[this.$options.name];
         }
 
     },
@@ -2663,6 +2670,7 @@ var Modal = {
                 var prev = active && active !== this && active;
 
                 active = this;
+                this.component.active = this;
 
                 if (prev) {
                     if (this.stack) {
@@ -2715,9 +2723,10 @@ var Modal = {
             self: true,
 
             handler: function handler() {
-                if (!active) {
+                if (this.component.active === this) {
                     docElement$$1.removeClass(this.clsPage);
                     this.body.css('overflow-y', '');
+                    this.component.active = null;
                 }
             }
 
@@ -3415,11 +3424,13 @@ var Drop = function (UIkit) {
                             }
 
                         } else if (active && !this$1.isChildOf(active) && !this$1.isParentOf(active)) {
+
                             var prev;
-                            while (active && active !== prev) {
+                            while (active && active !== prev && !this$1.isChildOf(active)) {
                                 prev = active;
                                 active.hide(false);
                             }
+
                         }
 
                         if (delay && this$1.delayShow) {
@@ -4673,15 +4684,13 @@ var Offcanvas = function (UIkit) {
                 name: 'click',
 
                 delegate: function delegate() {
-                    return this.panel;
+                    return 'a[href^="#"]';
                 },
 
                 handler: function handler(ref) {
-                    var target = ref.target;
+                    var currentTarget = ref.currentTarget;
 
-                    var link = $__default(target).closest('a[href^=#]'), href = link.attr('href');
-
-                    if (href.length > 1 && this.content.find(href).length) {
+                    if (currentTarget.hash && this.content.find(currentTarget.hash).length) {
                         scroll = null;
                         this.hide();
                     }
@@ -5141,6 +5150,7 @@ var Sticky = function (UIkit) {
             clsInactive: String,
             clsFixed: String,
             clsBelow: String,
+            selTarget: String,
             widthElement: 'jQuery',
             showOnUp: Boolean,
             media: 'media',
@@ -5156,10 +5166,19 @@ var Sticky = function (UIkit) {
             clsInactive: '',
             clsFixed: 'uk-sticky-fixed',
             clsBelow: 'uk-sticky-below',
+            selTarget: '',
             widthElement: false,
             showOnUp: false,
             media: false,
             target: false
+        },
+
+        computed: {
+
+            selTarget: function selTarget() {
+                return this.$props.selTarget && toJQuery$$1(this.$props.selTarget, this.$el) || this.$el;
+            }
+
         },
 
         connected: function connected() {
@@ -5168,7 +5187,7 @@ var Sticky = function (UIkit) {
             this.widthElement = this.$props.widthElement || this.placeholder;
 
             if (!this.isActive) {
-                this.$addClass(this.clsInactive);
+                this.hide();
             }
         },
 
@@ -5210,6 +5229,30 @@ var Sticky = function (UIkit) {
             }
 
         },
+
+        events: [
+
+            {
+                name: 'active',
+
+                handler: function handler() {
+                    this.$addClass(this.selTarget, this.clsActive);
+                    this.$removeClass(this.selTarget, this.clsInactive);
+                }
+
+            },
+
+            {
+                name: 'inactive',
+
+                handler: function handler() {
+                    this.$addClass(this.selTarget, this.clsInactive);
+                    this.$removeClass(this.selTarget, this.clsActive);
+                }
+
+            }
+
+        ],
 
         update: [
 
@@ -5342,21 +5385,25 @@ var Sticky = function (UIkit) {
 
                 this.isActive = true;
                 this.update();
-                this.$el.trigger('active');
                 this.placeholder.attr('hidden', null);
 
             },
 
             hide: function hide() {
 
-                this.$addClass(this.clsInactive);
-                this.$removeClass(this.clsFixed, this.clsActive, this.clsBelow);
-                this.$el.css({position: '', top: '', width: ''}).trigger('inactive');
+                if (!this.isActive || this.$hasClass(this.clsActive)) {
+                    this.$el.trigger('inactive');
+                }
+
+                this.$removeClass(this.clsFixed, this.clsBelow);
+                this.$el.css({position: '', top: '', width: ''});
                 this.placeholder.attr('hidden', true);
 
             },
 
             update: function update() {
+                var this$1 = this;
+
 
                 var top = Math.max(0, this.offset), active = this.scroll > this.top;
 
@@ -5370,11 +5417,26 @@ var Sticky = function (UIkit) {
                     width: this.width
                 });
 
-                this.$addClass(this.clsFixed);
-                this.$toggleClass(this.clsActive, active);
-                this.$toggleClass(this.clsInactive, !active);
+                if (this.$hasClass(this.clsActive)) {
+
+                    if (!active) {
+                        this.$el.trigger('inactive');
+                    }
+
+                } else {
+
+                    if (active) {
+                        this.$el.trigger('active');
+                    }
+                }
+
                 this.$toggleClass(this.clsBelow, this.scroll > this.bottomOffset);
 
+                if (this.showOnUp) {
+                    requestAnimationFrame(function () { return this$1.$addClass(this$1.clsFixed); });
+                } else {
+                    this.$addClass(this.clsFixed);
+                }
             }
 
         }
@@ -5508,14 +5570,28 @@ var Svg = function (UIkit) {
 
                 var root = this$1.$el[0];
                 if (isVoidElement$$1(root) || root.tagName === 'CANVAS') {
+
                     this$1.$el.attr({hidden: true, id: null});
+
                     if (root.nextSibling) {
-                        root.parentNode.insertBefore(el, root.nextSibling);
+
+                        if (el.isEqualNode(root.nextSibling)) {
+                            el = root.nextSibling;
+                        } else {
+                            root.parentNode.insertBefore(el, root.nextSibling);
+                        }
+
                     } else {
                         root.parentNode.appendChild(el);
                     }
                 } else {
-                    root.appendChild(el);
+
+                    if (root.lastChild && el.isEqualNode(root.lastChild)) {
+                        el = root.lastChild;
+                    } else {
+                        root.appendChild(el);
+                    }
+
                 }
 
                 resolve(el);
@@ -5819,12 +5895,12 @@ var Toggle = function (UIkit) {
                     }
 
                     // TODO better isToggled handling
-                    var link = $__default(e.target).closest('a[href]');
+                    var link = $__default(e.target).closest('a[href]')[0];
                     if ($__default(e.target).closest('a[href="#"], button').length
-                        || link.length && (
+                        || link && (
                             this.cls
                             || !this.target.is(':visible')
-                            || link.attr('href')[0] === '#' && this.target.is(link.attr('href'))
+                            || link.hash && this.target.is(link.hash)
                         )
                     ) {
                         e.preventDefault();
@@ -6043,7 +6119,7 @@ var core = function (UIkit) {
 
 };
 
-UIkit$2.version = '3.0.0-beta.25-0.2';
+UIkit$2.version = '3.0.0-beta.27';
 
 mixin(UIkit$2);
 core(UIkit$2);
@@ -6340,7 +6416,7 @@ function plugin$2(UIkit) {
 
             start: function start(e) {
 
-                if (e.button && e.button !== 0) {
+                if (e.button && e.button !== 0 || this.slides.length < 2) {
                     return;
                 }
 
@@ -7178,7 +7254,7 @@ function plugin$1(UIkit) {
                     // Vimeo
                     } else if (matches = source.match(/(\/\/.*?)vimeo\.[a-z]+\/([0-9]+).*?/)) {
 
-                        ajax$$1({type: 'GET', url: ("http://vimeo.com/api/oembed.json?url=" + (encodeURI(source))), jsonp: 'callback', dataType: 'jsonp'})
+                        ajax$$1({type: 'GET', url: ("//vimeo.com/api/oembed.json?url=" + (encodeURI(source))), jsonp: 'callback', dataType: 'jsonp'})
                             .then(function (ref) {
                                 var height = ref.height;
                                 var width = ref.width;
@@ -8356,7 +8432,7 @@ function plugin$8(UIkit) {
                     if (prop.match(/^bg/)) {
 
                         var attr = "background-position-" + (prop[2]);
-                        props[prop].pos = this$1.$el.css(attr, '').css(attr);
+                        props[prop].pos = this$1.$el.css(attr, '').css('background-position').split(' ')[prop[2] === 'x' ? 0 : 1]; // IE 11 can't read background-position-[x|y]
 
                         if (this$1.covers) {
                             assign(props[prop], {start: 0, end: start <= end ? diff : -diff});
@@ -8518,6 +8594,7 @@ function plugin$8(UIkit) {
                         // transforms
                         case 'x':
                         case 'y':
+
                             if (translated) {
                                 break;
                             }
